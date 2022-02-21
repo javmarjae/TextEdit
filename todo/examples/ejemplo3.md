@@ -1,6 +1,6 @@
 ---
 title: "Ejemplo"
-author: "Javier Marti�nez Jaen"
+author: "Javier Martínez Jaén"
 date: "Febrero 2022"
 output:
   html_document: default

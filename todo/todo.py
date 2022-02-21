@@ -79,7 +79,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self._createActions()
         self._createMenuBar()
         self._createToolBars()
-        
+
     #Creamos la barra de menu
     def _createMenuBar(self):
         menuBar = QMenuBar(self)
@@ -220,6 +220,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             qApp.quit
         else: pass
     
+    #Función para abrir el visualizador en HTML del texto en markdown
     def openSubWindow(self):
         filename = os.path.join(CURRENT_DIR, "index.html")
 
@@ -247,15 +248,13 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         if not file:
             return
 
-        fileOpen = open(file)
-
         #Guardamos la ruta
         self.filePath = file
 
         name = os.path.basename(self.filePath)
         self.setWindowTitle('%s | TextEdit' %name)
 
-        #Establecemos el widget para escritura
+        #Establecemos el widget para escritura y lectura en HTML en paralelo
         self.textEdit = QTextEdit()
         central_widget = QWidget()
         self.setCentralWidget(central_widget)
@@ -263,12 +262,15 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.openSubWindow()
 
         lay = QHBoxLayout(central_widget)
-        lay.addWidget(self.textEdit)
-        lay.addWidget(self.textPreview)
+        lay.addWidget(self.textEdit,5)
+        lay.addWidget(self.textPreview,5)
 
         #Abrimos el archivo y guardamos en una variable todo el texto que contiene para mostrarlo
-        with fileOpen:
-            text = fileOpen.read()
+        with open(file, 'r', encoding='utf-8') as f:
+            text = f.read()
+            
+        with open(file, 'w', encoding='utf-8') as f:
+            f.write(text)
             self.textEdit.setText(text) 
 
     def fileNew(self):
@@ -285,24 +287,31 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         name = os.path.basename(self.filePath)
         self.setWindowTitle('%s | TextEdit' %name)
 
-        #Establecemos el widget para escritura
+        #Establecemos el widget para escritura y lectura en HTML en paralelo
         self.textEdit = QTextEdit()
-        self.setCentralWidget(self.textEdit)
+        central_widget = QWidget()
+        self.setCentralWidget(central_widget)
+
+        self.openSubWindow()
+
+        lay = QHBoxLayout(central_widget)
+        lay.addWidget(self.textEdit,5)
+        lay.addWidget(self.textPreview,5)
 
         #Abrimos el archivo con opción de escritura
         if file:
-            with open(file,'w'):
+            with open(file, 'w', encoding='utf-8'):
                 text = ''
                 self.textEdit.setText(text)
 
     #Función para guardar los cambios
-    def fileSave(self):
+    def fileSave(self):  
 
         #Obtengo la ruta del archivo abierto
         file = self.filePath
 
         #Definimos la función de guardado de un archivo
-        with open(file, 'w') as file:
+        with open(file, 'w', encoding='utf-8') as file:
             text = self.textEdit.toPlainText()
             file.write(text)    
 
