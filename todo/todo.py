@@ -1,10 +1,12 @@
 
+from msilib.schema import Shortcut
 import sys
 import json
 import os
+from xml.dom.minidom import Document
 
 from PyQt5 import QtCore, QtGui, uic
-from PyQt5.QtGui import QIcon 
+from PyQt5.QtGui import QIcon, QTextCursor 
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import Qt
 
@@ -43,12 +45,16 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.setupUi(self)
         self.model = TodoModel()
         self.load()
+        self.lineEdit = QLineEdit()
         self.textEdit = QTextEdit()
+        self.clipboard = QApplication.clipboard()
         self.statusBar = QStatusBar()
+        self.cursor = QtGui.QTextCursor()
         self.setFocus()
         self._createActions()
         self._createMenuBar()
         self._createToolBars()
+        
         
     #Creamos la barra de menu
     def _createMenuBar(self):
@@ -112,6 +118,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         editToolBar.addAction(self.header1)
         editToolBar.addAction(self.header2)
         editToolBar.addAction(self.header3)
+        editToolBar.addSeparator()
+        editToolBar.addAction(self.undo)
+        editToolBar.addAction(self.redo)
 
         editToolBar.setMovable(False)
        
@@ -120,43 +129,34 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     #Creamos las acciones que se añaden a los menus
     def _createActions(self):
 
-        self.newFile = QAction(QIcon("resources/newFile.png"),'Nuevo', self)
-        self.newFile.setShortcut('Ctrl+n')
+        self.newFile = QAction(QIcon("resources/newFile.png"),'Nuevo', self, triggered = self.fileNew, shortcut = 'Ctrl+n')
         self.newFile.setStatusTip('Nuevo archivo')
 
-        self.openFile = QAction(QIcon("resources/openFile.png"),'Abrir', self)
-        self.openFile.setShortcut('Ctrl+a')
+        self.openFile = QAction(QIcon("resources/openFile.png"),'Abrir', self, triggered = self.fileOpen, shortcut = 'Ctrl+a')
         self.openFile.setStatusTip('Abrir archivo')
-        self.openFile.triggered.connect(self.file_open)
 
-        self.saveFile = QAction(QIcon("resources/saveFile.png"),'&Guardar', self)
-        self.saveFile.setShortcut('Ctrl+s')
+        self.saveFile = QAction(QIcon("resources/saveFile.png"),'&Guardar', self, triggered = self.fileSave, shortcut = 'Ctrl+s')
         self.saveFile.setStatusTip('Guardar cambios')
 
-        self.closeApp = QAction('Cerrar', self)
-        self.closeApp.setShortcut('Ctrl+q')
+        self.closeApp = QAction('Cerrar', self, triggered = self.close, shortcut = 'Ctrl+q')
         self.closeApp.setStatusTip('Cerrar aplicacion')
-        self.closeApp.triggered.connect(self.close)
 
-        self.copyText = QAction(QIcon("resources/copy.png"),'Copiar', self)
-        self.copyText.setShortcut('Ctrl+c')
-        self.copyText.setStatusTip('Copiar')
+        self.copyText = QAction(QIcon("resources/copy.png"),'Copiar', self, triggered = self.textCopy, shortcut = 'Ctrl+c')
+        self.copyText.setStatusTip('Copiar el texto seleccionado')
 
-        self.pasteText = QAction(QIcon("resources/paste.png"),'Pegar', self)
-        self.pasteText.setShortcut('Ctrl+v')
-        self.pasteText.setStatusTip('Pegar')
+        self.pasteText = QAction(QIcon("resources/paste.png"),'Pegar', self, triggered = self.textPaste, shortcut = 'Ctrl+v')
+        self.pasteText.setStatusTip('Pegar del portapapeles')
 
-        self.cutText = QAction(QIcon("resources/cut.png"),'Cortar', self)
-        self.cutText.setShortcut('Ctrl+x')
-        self.cutText.setStatusTip('Cortar')
+        self.cutText = QAction(QIcon("resources/cut.png"),'Cortar', self, triggered = self.textCut, shortcut = 'Ctrl+x')
+        self.cutText.setStatusTip('Cortar el texto seleccionado')
 
-        self.undo = QAction(QIcon("resources/undo.png"), 'Deshacer', self)
-        self.undo.setShortcut('Ctrl+z')
+        self.undo = QAction(QIcon("resources/undo.png"), 'Deshacer', self, shortcut = 'Ctrl+z')
         self.undo.setStatusTip('Deshacer')
+        #self.undo.triggered.connect(QUndoCommand.undo())
 
-        self.redo = QAction(QIcon("resources/redo.png"), 'Rehacer', self)
-        self.redo.setShortcut('Ctrl+z')
+        self.redo = QAction(QIcon("resources/redo.png"), 'Rehacer', self, shortcut = 'Ctrl+y')
         self.redo.setStatusTip('Rehacer')
+        #self.redo.triggered.connect(QUndoCommand.redo())
 
         self.header1 = QAction(QIcon("resources/header1.png"), 'Título 1', self)
         self.header1.setShortcut('Ctrl+h+1')
@@ -196,16 +196,80 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             qApp.quit
         else: pass
 
-    def file_open(self):
-        name,_ = QFileDialog.getOpenFileName(self, 'Open File')
-        file = open(name)
+    #Función abrir documento de texto
+    def fileOpen(self):
+        #Establecemos el archivo que queremos abrir 
+        file,_ = QFileDialog.getOpenFileName(self, 'Abrir archivo')
 
+        #Añadimos este condicional por si el usuario cancela
+        if not file:
+            return
+
+        fileOpen = open(file)
+
+        #Guardamos la ruta
+        self.filePath = file
+
+        #Establecemos el widget para escritura
         self.textEdit = QTextEdit()
         self.setCentralWidget(self.textEdit)
 
-        with file:
-            text = file.read()
-            self.textEdit.setText(text)       
+        #Abrimos el archivo y guardamos en una variable todo el texto que contiene para mostrarlo
+        with fileOpen:
+            text = fileOpen.read()
+            self.textEdit.setText(text) 
+
+    def fileNew(self):
+        #Establecemos el lugar en el que vamos a guardar el archivo
+        file,_ = QFileDialog.getSaveFileName()
+
+        #Añadimos este condicional por si el usuario cancela
+        if not file:
+            return
+
+        #Guardamos la ruta
+        self.filePath = file
+
+        #Establecemos el widget para escritura
+        self.textEdit = QTextEdit()
+        self.setCentralWidget(self.textEdit)
+
+        #Abrimos el archivo con opción de escritura
+        if file:
+            with open(file,'w'):
+                text = ''
+                self.textEdit.setText(text)
+
+    #Función para guardar los cambios
+    def fileSave(self):
+
+        #Obtengo la ruta del archivo abierto
+        file = self.filePath
+
+        #Definimos la función de guardado de un archivo
+        with open(file, 'w') as file:
+            text = self.textEdit.toPlainText()
+            file.write(text)    
+
+    #Función copiar
+    def textCopy(self):
+        tc = self.textEdit.textCursor()
+        text = QTextCursor.selectedText(tc)
+        self.clipboard.setText(text)
+
+    #Función pegar
+    def textPaste(self):
+        tc = self.textEdit.textCursor()
+        if QTextCursor.selectedText(tc) != '':
+            QTextCursor.removeSelectedText(tc)
+        tc.insertText(self.clipboard.text())
+    
+    #Función cortar
+    def textCut(self):
+        tc = self.textEdit.textCursor()
+        text = QTextCursor.selectedText(tc)
+        self.clipboard.setText(text)
+        QTextCursor.removeSelectedText(tc)
 
     def add(self):
         """

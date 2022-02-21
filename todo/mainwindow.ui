@@ -16,7 +16,7 @@
         <widget class="QWidget" name="centralWidget">
             <layout class="QVBoxLayout" name="verticalLayout">
                 <item>
-                    <widget class="QTextEdit" name="textEdit"/>
+                    <widget class="QTextEdit" name="textEdit" />
                 </item>
             </layout>
         </widget>
@@ -30,7 +30,7 @@
                 </rect>
             </property>
             <item>
-                <widget class="button" name="Archivo"/>
+                <widget class="button" name="Archivo" />
             </item>
         </widget>
         <widget class="QStatusBar" name="statusbar" />
