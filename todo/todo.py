@@ -1,6 +1,7 @@
 import sys
 import json
 import os
+import urllib.request
 from xml.dom.minidom import Document
 
 from PyQt5 import QtCore, QtGui, uic
@@ -20,11 +21,9 @@ Ui_MainWindow, QtBaseClass = uic.loadUiType(qt_creator_file)
 tick = QtGui.QImage('tick.png')
 
 class Document(QObject):
-    textChanged = pyqtSignal(str)
-
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.m_text = ""
+        self.m_text = ''
 
     def get_text(self):
         return self.m_text
@@ -35,31 +34,11 @@ class Document(QObject):
         self.m_text = text
         self.textChanged.emit(self.m_text)
 
+    textChanged = pyqtSignal(str)
     text = pyqtProperty(str, fget=get_text, fset=set_text, notify=textChanged)
 
-class DownloadManager(QObject):
-    finished = pyqtSignal(str)
-
-    def __init__(self, parent=None):
-        super().__init__(parent)
-
-        self._manager = QNetworkAccessManager()
-        self.manager.finished.connect(self.handle_finished)
-
-    @property
-    def manager(self):
-        return self._manager
-
-    def start_download(self, url):
-        self.manager.get(QNetworkRequest(url))
-
-    def handle_finished(self, reply):
-        if reply.error() != QNetworkReply.NoError:
-            print("error: ", reply.errorString())
-            return
-        codec = QTextCodec.codecForName("UTF-8")
-        raw_data = codec.toUnicode(reply.readAll())
-        self.finished.emit(raw_data)
+class PreviewPage(QWebEnginePage):
+    pass
 
 class TodoModel(QtCore.QAbstractListModel):
     #Este es el todoModel que venia con el esqueleto del programa
@@ -90,7 +69,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.model = TodoModel()
         self.load()
         self.lineEdit = QLineEdit()
-        self.textView = QWebEngineView()
+        self.textPreview = QWebEngineView()
+        self.textPreview.setContextMenuPolicy(Qt.NoContextMenu)
         self.textEdit = QTextEdit()
         self.clipboard = QApplication.clipboard()
         self.statusBar = QStatusBar()
@@ -243,19 +223,20 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def openSubWindow(self):
         filename = os.path.join(CURRENT_DIR, "index.html")
 
-        document = Document()
-        download_manager = DownloadManager()
+        self.page = PreviewPage()
+        self.textPreview.setPage(self.page)
 
-        channel = QWebChannel()
-        channel.registerObject("content", document)
+        self.content = Document()
+        self.channel = QWebChannel()
+        self.channel.registerObject("content", self.content)
+        self.page.setWebChannel(self.channel)
 
-        markdown_url = QUrl.fromLocalFile(self.filePath)
+        self.textEdit.textChanged.connect(lambda:self.content.set_text(self.textEdit.toPlainText()))
 
-        download_manager.finished.connect(document.set_text)
-        download_manager.start_download(markdown_url)
-
-        self.textView.page().setWebChannel(channel)
-        self.textView.load(QUrl.fromLocalFile(filename))
+        self.urlMd = urllib.request.pathname2url(os.path.join(os.getcwd(),'index.html'))
+        self.textPreview.setUrl(QUrl(self.urlMd))
+        
+        self.textPreview.load(QUrl.fromLocalFile(filename))
 
     #Función abrir documento de texto
     def fileOpen(self):
@@ -283,7 +264,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         lay = QHBoxLayout(central_widget)
         lay.addWidget(self.textEdit)
-        lay.addWidget(self.textView)
+        lay.addWidget(self.textPreview)
 
         #Abrimos el archivo y guardamos en una variable todo el texto que contiene para mostrarlo
         with fileOpen:

@@ -8,10 +8,6 @@ output:
   word_document: default
 ---
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)  
-```
-
 
 ## Problema 1
 
@@ -23,11 +19,6 @@ La base de datos `CARS2004` del paquete `PASWR2` recoge el número de coches por
 
 ### Apartado 1
 
-```{r}
-library(PASWR2)
-summary(CARS2004) 
-```
-
 Como puedes observar, al compilar tu documento aparecen las sentencias de `R` y el output que te da el programa.
 
 
@@ -35,15 +26,5 @@ Como puedes observar, al compilar tu documento aparecen las sentencias de `R` y 
 
 Ahora vamos a utilizar la función `eda` del paquete `PASWR2` para realizar un análisis exploratorio de la variable `deaths`
 
-```{r}
-eda(CARS2004$deaths)
-```
 
 En este caso, en tu documento final te aparece el código de `R`, el output numérico de la función `eda` y el output gráfico de la función `eda`.
-
-~~~
-<center style="color: green;font-size: 150%">
-__Utiliza este documento para presentar las prácticas de una manera sencilla y bonita__.
-</center>
-
-~~~
