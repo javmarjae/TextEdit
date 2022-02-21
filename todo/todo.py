@@ -1,5 +1,3 @@
-
-from msilib.schema import Shortcut
 import sys
 import json
 import os
@@ -8,13 +6,60 @@ from xml.dom.minidom import Document
 from PyQt5 import QtCore, QtGui, uic
 from PyQt5.QtGui import QIcon, QTextCursor 
 from PyQt5.QtWidgets import *
-from PyQt5.QtCore import Qt
+from PyQt5.QtWebEngineWidgets import QWebEngineView, QWebEnginePage
+from PyQt5.QtCore import Qt, pyqtProperty, pyqtSignal, QObject, QTextCodec, QUrl
+from markdown import markdown
+from PyQt5.QtNetwork import QNetworkAccessManager, QNetworkReply, QNetworkRequest
+from PyQt5.QtWebChannel import QWebChannel
 
+
+CURRENT_DIR = os.path.dirname(os.path.realpath(__file__))
 
 qt_creator_file = "mainwindow.ui"
 Ui_MainWindow, QtBaseClass = uic.loadUiType(qt_creator_file)
 tick = QtGui.QImage('tick.png')
 
+class Document(QObject):
+    textChanged = pyqtSignal(str)
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.m_text = ""
+
+    def get_text(self):
+        return self.m_text
+
+    def set_text(self, text):
+        if self.m_text == text:
+            return
+        self.m_text = text
+        self.textChanged.emit(self.m_text)
+
+    text = pyqtProperty(str, fget=get_text, fset=set_text, notify=textChanged)
+
+class DownloadManager(QObject):
+    finished = pyqtSignal(str)
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+
+        self._manager = QNetworkAccessManager()
+        self.manager.finished.connect(self.handle_finished)
+
+    @property
+    def manager(self):
+        return self._manager
+
+    def start_download(self, url):
+        self.manager.get(QNetworkRequest(url))
+
+    def handle_finished(self, reply):
+        if reply.error() != QNetworkReply.NoError:
+            print("error: ", reply.errorString())
+            return
+        codec = QTextCodec.codecForName("UTF-8")
+        raw_data = codec.toUnicode(reply.readAll())
+        self.finished.emit(raw_data)
 
 class TodoModel(QtCore.QAbstractListModel):
     #Este es el todoModel que venia con el esqueleto del programa
@@ -35,17 +80,17 @@ class TodoModel(QtCore.QAbstractListModel):
     def rowCount(self, index):
         return len(self.todos)
 
-
 class MainWindow(QMainWindow, Ui_MainWindow):
 
     #Inicializamos
     def __init__(self):
-        QMainWindow.__init__(self)
-        Ui_MainWindow.__init__(self)
+        super(QMainWindow,self).__init__(parent=None)
+        self.ui = Ui_MainWindow()
         self.setupUi(self)
         self.model = TodoModel()
         self.load()
         self.lineEdit = QLineEdit()
+        self.textView = QWebEngineView()
         self.textEdit = QTextEdit()
         self.clipboard = QApplication.clipboard()
         self.statusBar = QStatusBar()
@@ -54,7 +99,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self._createActions()
         self._createMenuBar()
         self._createToolBars()
-        
         
     #Creamos la barra de menu
     def _createMenuBar(self):
@@ -195,6 +239,23 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         if choice == QMessageBox.Si:
             qApp.quit
         else: pass
+    
+    def openSubWindow(self):
+        filename = os.path.join(CURRENT_DIR, "index.html")
+
+        document = Document()
+        download_manager = DownloadManager()
+
+        channel = QWebChannel()
+        channel.registerObject("content", document)
+
+        markdown_url = QUrl.fromLocalFile(self.filePath)
+
+        download_manager.finished.connect(document.set_text)
+        download_manager.start_download(markdown_url)
+
+        self.textView.page().setWebChannel(channel)
+        self.textView.load(QUrl.fromLocalFile(filename))
 
     #Función abrir documento de texto
     def fileOpen(self):
@@ -210,9 +271,19 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         #Guardamos la ruta
         self.filePath = file
 
+        name = os.path.basename(self.filePath)
+        self.setWindowTitle('%s | TextEdit' %name)
+
         #Establecemos el widget para escritura
         self.textEdit = QTextEdit()
-        self.setCentralWidget(self.textEdit)
+        central_widget = QWidget()
+        self.setCentralWidget(central_widget)
+
+        self.openSubWindow()
+
+        lay = QHBoxLayout(central_widget)
+        lay.addWidget(self.textEdit)
+        lay.addWidget(self.textView)
 
         #Abrimos el archivo y guardamos en una variable todo el texto que contiene para mostrarlo
         with fileOpen:
@@ -229,6 +300,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         #Guardamos la ruta
         self.filePath = file
+
+        name = os.path.basename(self.filePath)
+        self.setWindowTitle('%s | TextEdit' %name)
 
         #Establecemos el widget para escritura
         self.textEdit = QTextEdit()
@@ -327,6 +401,5 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 app = QApplication(sys.argv)
 GUI = MainWindow()
 GUI.show()
-app.exec_()
-
+app.exec()
 

@@ -6,17 +6,20 @@
             <rect>
                 <x>0</x>
                 <y>50</y>
-                <width>600</width>
-                <height>400</height>
+                <width>800</width>
+                <height>600</height>
             </rect>
         </property>
         <property name="windowTitle">
             <string>TextEdit</string>
         </property>
         <widget class="QWidget" name="centralWidget">
-            <layout class="QVBoxLayout" name="verticalLayout">
+            <layout class="QHBoxLayout" name="horizontalLayout">
                 <item>
                     <widget class="QTextEdit" name="textEdit" />
+                </item>
+                <item>
+                    <widget class="QWebEngineView" name="textView" native="true" />
                 </item>
             </layout>
         </widget>
@@ -35,6 +38,14 @@
         </widget>
         <widget class="QStatusBar" name="statusbar" />
     </widget>
+    <customwidgets>
+        <customwidget>
+            <class>QWebEngineView</class>
+            <extends>QWidget</extends>
+            <header>PyQt5.QtWebEngineWidgets</header>
+            <container>1</container>
+        </customwidget>
+    </customwidgets>
     <resources />
     <connections />
 </ui>
