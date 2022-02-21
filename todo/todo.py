@@ -136,8 +136,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.fontSizeBox.setFocusPolicy(Qt.NoFocus)
         editToolBar.addWidget(self.fontSizeBox)
         editToolBar.addAction(self.bold)
-        editToolBar.addAction(self.striketrhough)
-        editToolBar.addAction(self.underline)
+        editToolBar.addAction(self.italic)
         editToolBar.addSeparator()
         editToolBar.addAction(self.header1)
         editToolBar.addAction(self.header2)
@@ -194,17 +193,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.header3.setShortcut('Ctrl+h+3')
         self.header3.setStatusTip('Título 3')
 
-        self.bold = QAction(QIcon("resources/bold.png"), 'Negrita', self)
-        self.bold.setShortcut('Ctrl+n')
+        self.bold = QAction(QIcon("resources/bold.png"), 'Negrita', self, triggered = self.textBold, shortcut = 'Ctrl+n')
         self.bold.setStatusTip('Texto marcado')
 
-        self.underline = QAction(QIcon("resources/underline.png"), 'Subrayado', self)
-        self.underline.setShortcut('Ctrl+u')
-        self.underline.setStatusTip('Texto subrayado')
-
-        self.striketrhough = QAction(QIcon("resources/striketrhough.png"), 'Cursiva', self)
-        self.striketrhough.setShortcut('Ctrl+k')
-        self.striketrhough.setStatusTip('Texto en cursiva')
+        self.italic = QAction(QIcon("resources/italic.png"), 'Cursiva', self, triggered = self.textItalic, shortcut = 'Ctrl+k')
+        self.italic.setStatusTip('Texto en cursiva')
 
         self.help = QAction('Ayuda', self)
         self.help.setShortcut('Ctrl+h')
@@ -334,6 +327,18 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         text = QTextCursor.selectedText(tc)
         self.clipboard.setText(text)
         QTextCursor.removeSelectedText(tc)
+
+    #Función negrita
+    def textBold(self):
+        tc = self.textEdit.textCursor()
+        if QTextCursor.selectedText(tc) != '':
+            tc.insertText('**' + QTextCursor.selectedText(tc) + '**')
+
+    #Función cursiva
+    def textItalic(self):
+        tc = self.textEdit.textCursor()
+        if QTextCursor.selectedText(tc) != '':
+            tc.insertText('*' + QTextCursor.selectedText(tc) + '*')
 
     def add(self):
         """

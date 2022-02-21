@@ -1,12 +1,8 @@
----
+```
 title: "Ejemplo"
 author: "Javier Martínez Jaén"
 date: "Febrero 2022"
-output:
-  html_document: default
-  pdf_document: default
-  word_document: default
----
+```
 
 
 ## Problema 1
