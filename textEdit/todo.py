@@ -1,7 +1,7 @@
-import logging
+
 from posixpath import expanduser, normpath
 import sys
-import json
+
 import os
 import locale
 import urllib.request
@@ -13,36 +13,16 @@ from PyQt5.QtWidgets import *
 from PyQt5.QtWebEngineWidgets import QWebEngineView, QWebEnginePage
 from PyQt5.QtCore import Qt, pyqtProperty, pyqtSignal, QObject, QTextCodec, QUrl
 from markdown import markdown
-from PyQt5.QtNetwork import QNetworkAccessManager, QNetworkReply, QNetworkRequest
 from PyQt5.QtWebChannel import QWebChannel
 from i18n import trans
 from commands import *
+from controllers.views import ViewsController
 
 
 CURRENT_DIR = os.path.dirname(os.path.realpath(__file__))
 
-qt_creator_file = "mainwindow.ui"
+qt_creator_file = "textEdit\mainwindow.ui"
 Ui_MainWindow, QtBaseClass = uic.loadUiType(qt_creator_file)
-
-class Document(QObject):
-    def __init__(self, parent=None):
-        super().__init__(parent)
-        self.m_text = ''
-
-    def get_text(self):
-        return self.m_text
-
-    def set_text(self, text):
-        if self.m_text == text:
-            return
-        self.m_text = text
-        self.textChanged.emit(self.m_text)
-
-    textChanged = pyqtSignal(str)
-    text = pyqtProperty(str, fget=get_text, fset=set_text, notify=textChanged)
-
-class PreviewPage(QWebEnginePage):
-    pass
 
 class MainWindow(QMainWindow, Ui_MainWindow):
 
@@ -51,6 +31,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         super(QMainWindow,self).__init__(parent=None)
         self.ui = Ui_MainWindow()
         self.setupUi(self)
+        self.views = ViewsController(self)
         self.textPreview = QWebEngineView()
         self.textPreview.setContextMenuPolicy(Qt.NoContextMenu)
         self.textEdit = QTextEdit()
@@ -70,9 +51,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         menuBar = QMenuBar(self)
 
         #Añadimos los tres menus: archivo, editar y ayuda
-        fileMenu = QMenu(trans("&File"), self)
-        editMenu = QMenu(trans("&Edit"), self)
-        helpMenu = QMenu(trans("&Help"), self)
+        fileMenu = QMenu(trans("File"), self)
+        editMenu = QMenu(trans("Edit"), self)
+        helpMenu = QMenu(trans("Help"), self)
 
         #Añadimos el menu archivo con sus acciones
         menuBar.addMenu(fileMenu)
@@ -137,31 +118,31 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     #Creamos las acciones que se añaden a los menus
     def _createActions(self):
 
-        self.newFile = QAction(QIcon("resources/icons/newFile.png"),trans('New'), self, triggered = self.fileNew, shortcut = 'Ctrl+n')
+        self.newFile = QAction(QIcon("textEdit/resources/icons/newFile.png"),trans('New'), self, triggered = self.fileNew, shortcut = 'Ctrl+n')
         self.newFile.setStatusTip(trans('New file'))
 
-        self.openFile = QAction(QIcon("resources/icons/openFile.png"),trans('Open'), self, triggered = self.fileOpen, shortcut = 'Ctrl+a')
+        self.openFile = QAction(QIcon("textEdit/resources/icons/openFile.png"),trans('Open'), self, triggered = self.fileOpen, shortcut = 'Ctrl+a')
         self.openFile.setStatusTip(trans('Open file'))
 
-        self.saveFile = QAction(QIcon("resources/icons/saveFile.png"),trans('Save'), self, triggered = self.fileSave, shortcut = 'Ctrl+s')
+        self.saveFile = QAction(QIcon("textEdit/resources/icons/saveFile.png"),trans('Save'), self, triggered = self.fileSave, shortcut = 'Ctrl+s')
         self.saveFile.setStatusTip(trans('Save changes'))
 
         self.closeApp = QAction('Close', self, triggered = self.close, shortcut = 'Ctrl+q')
         self.closeApp.setStatusTip(trans('Close app'))
 
-        self.copyText = QAction(QIcon("resources/icons/copy.png"),trans('Copy'), self, triggered = self.textCopy, shortcut = 'Ctrl+c')
+        self.copyText = QAction(QIcon("textEdit/resources/icons/copy.png"),trans('Copy'), self, triggered = self.textCopy, shortcut = 'Ctrl+c')
         self.copyText.setStatusTip(trans('Copy selected text'))
 
-        self.pasteText = QAction(QIcon("resources/icons/paste.png"),trans('Paste'), self, triggered = self.textPaste, shortcut = 'Ctrl+v')
+        self.pasteText = QAction(QIcon("textEdit/resources/icons/paste.png"),trans('Paste'), self, triggered = self.textPaste, shortcut = 'Ctrl+v')
         self.pasteText.setStatusTip(trans('Paste from clipboard'))
 
-        self.cutText = QAction(QIcon("resources/icons/cut.png"),trans('Cut'), self, triggered = self.textCut, shortcut = 'Ctrl+x')
+        self.cutText = QAction(QIcon("textEdit/resources/icons/cut.png"),trans('Cut'), self, triggered = self.textCut, shortcut = 'Ctrl+x')
         self.cutText.setStatusTip(trans('Cut selected text'))
 
         self.undoStack.indexChanged.connect(self.writeFile)
 
         self.undo = self.undoStack.createUndoAction(self, self.tr('Undo'))
-        self.undo.setIcon(QIcon('resources/icons/undo.png'))
+        self.undo.setIcon(QIcon('textEdit/resources/icons/undo.png'))
         self.undo.setShortcut('Ctrl+z')
         #self.undo = QAction(QIcon("resources/icons/undo.png"), 'Undo', self, shortcut = 'Ctrl+z')
         self.undo.setStatusTip('Undo')
@@ -171,10 +152,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.undoButton.setToolTip(trans('Undo'))
         self.undoButton.setDefaultAction(self.undo)
         self.undoButton.setEnabled(True)
-        self.undoButton.setIcon(QIcon('resources/icons/undo.png'))
+        self.undoButton.setIcon(QIcon('textEdit/resources/icons/undo.png'))
         
         self.redo = self.undoStack.createRedoAction(self, self.tr('Redo'))
-        self.redo.setIcon(QIcon('resources/icons/redo.png'))
+        self.redo.setIcon(QIcon('textEdit/resources/icons/redo.png'))
         self.redo.setShortcut('Ctrl+y')
         #self.redo = QAction(QIcon("resources/icons/redo.png"), 'Redo', self, shortcut = 'Ctrl+y')
         self.redo.setStatusTip('Redo')
@@ -185,21 +166,21 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.redoButton.setToolTip(trans('Redo'))
         self.redoButton.setDefaultAction(self.redo)
         self.redoButton.setEnabled(True)
-        self.redoButton.setIcon(QIcon('resources/icons/redo.png'))
+        self.redoButton.setIcon(QIcon('textEdit/resources/icons/redo.png'))
 
-        self.header1 = QAction(QIcon("resources/icons/header1.png"), trans('Header 1'), self, triggered = self.textH1, shortcut='Ctrl+h+1')
+        self.header1 = QAction(QIcon("textEdit/resources/icons/header1.png"), trans('Header 1'), self, triggered = self.textH1, shortcut='Ctrl+h+1')
         self.header1.setStatusTip(trans('Header 1'))
 
-        self.header2 = QAction(QIcon("resources/icons/header2.png"), trans('Header 2'), self, triggered = self.textH2, shortcut='Ctrl+h+2')
+        self.header2 = QAction(QIcon("textEdit/resources/icons/header2.png"), trans('Header 2'), self, triggered = self.textH2, shortcut='Ctrl+h+2')
         self.header2.setStatusTip(trans('Header 2'))
 
-        self.header3 = QAction(QIcon("resources/icons/header3.png"), trans('Header 3'), self, triggered = self.textH3, shortcut='Ctrl+h+3')
+        self.header3 = QAction(QIcon("textEdit/resources/icons/header3.png"), trans('Header 3'), self, triggered = self.textH3, shortcut='Ctrl+h+3')
         self.header3.setStatusTip(trans('Header 3'))
 
-        self.bold = QAction(QIcon("resources/icons/bold.png"), trans('Bold'), self, triggered = self.textBold, shortcut = 'Ctrl+n')
+        self.bold = QAction(QIcon("textEdit/resources/icons/bold.png"), trans('Bold'), self, triggered = self.textBold, shortcut = 'Ctrl+n')
         self.bold.setStatusTip(trans('Bold text'))
 
-        self.italic = QAction(QIcon("resources/icons/italic.png"), trans('Italic'), self, triggered = self.textItalic, shortcut = 'Ctrl+k')
+        self.italic = QAction(QIcon("textEdit/resources/icons/italic.png"), trans('Italic'), self, triggered = self.textItalic, shortcut = 'Ctrl+k')
         self.italic.setStatusTip(trans('Italic text'))
 
         self.help = QAction(trans('Help'), self)
@@ -215,25 +196,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         if choice == QMessageBox.Si:
             qApp.quit
         else: pass
-    
-    #Función para abrir el visualizador en HTML del texto en markdown
-    def openSubWindow(self):
-        filename = os.path.join(CURRENT_DIR, "index.html")
-
-        self.page = PreviewPage()
-        self.textPreview.setPage(self.page)
-
-        self.content = Document()
-        self.channel = QWebChannel()
-        self.channel.registerObject("content", self.content)
-        self.page.setWebChannel(self.channel)
-
-        self.textEdit.textChanged.connect(lambda:self.content.set_text(self.textEdit.toPlainText()))
-
-        self.urlMd = urllib.request.pathname2url(os.path.join(os.getcwd(),'index.html'))
-        self.textPreview.setUrl(QUrl(self.urlMd))
-        
-        self.textPreview.load(QUrl.fromLocalFile(filename))
 
     #Función abrir documento de texto
     def fileOpen(self):
@@ -255,7 +217,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         central_widget = QWidget()
         self.setCentralWidget(central_widget)
 
-        self.openSubWindow()
+        self.views.openSubWindow()
 
         lay = QHBoxLayout(central_widget)
         lay.addWidget(self.textEdit,5)
@@ -285,7 +247,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         central_widget = QWidget()
         self.setCentralWidget(central_widget)
 
-        self.openSubWindow()
+        self.views.openSubWindow()
 
         lay = QHBoxLayout(central_widget)
         lay.addWidget(self.textEdit,5)
@@ -377,7 +339,7 @@ if __name__ == '__main__':
     settings.value('language',language)
     translation = f'{language}.qm'
     translator = QtCore.QTranslator()
-    translator.load(translation,f'resources/i18n/')
+    translator.load(translation,f'textEdit/resources/i18n/')
     app.installTranslator(translator)
 
     GUI = MainWindow()

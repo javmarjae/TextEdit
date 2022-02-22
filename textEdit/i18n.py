@@ -4,7 +4,7 @@ import yaml
 from PyQt5.QtCore import QSettings
 
 CACHED_TRANS = None
-CONFIG_FOLDER = normpath(expanduser('resources/'))
+CONFIG_FOLDER = normpath(expanduser('textEdit/resources/'))
 
 
 def get_trans_dict(lang: str) -> dict:
