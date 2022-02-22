@@ -1,6 +1,9 @@
+import logging
+from posixpath import expanduser, normpath
 import sys
 import json
 import os
+import locale
 import urllib.request
 from xml.dom.minidom import Document
 
@@ -12,13 +15,13 @@ from PyQt5.QtCore import Qt, pyqtProperty, pyqtSignal, QObject, QTextCodec, QUrl
 from markdown import markdown
 from PyQt5.QtNetwork import QNetworkAccessManager, QNetworkReply, QNetworkRequest
 from PyQt5.QtWebChannel import QWebChannel
+from i18n import trans
 
 
 CURRENT_DIR = os.path.dirname(os.path.realpath(__file__))
 
 qt_creator_file = "mainwindow.ui"
 Ui_MainWindow, QtBaseClass = uic.loadUiType(qt_creator_file)
-tick = QtGui.QImage('tick.png')
 
 class Document(QObject):
     def __init__(self, parent=None):
@@ -40,25 +43,6 @@ class Document(QObject):
 class PreviewPage(QWebEnginePage):
     pass
 
-class TodoModel(QtCore.QAbstractListModel):
-    #Este es el todoModel que venia con el esqueleto del programa
-    def __init__(self, *args, todos=None, **kwargs):
-        super(TodoModel, self).__init__(*args, **kwargs)
-        self.todos = todos or [] 
-        
-    def data(self, index, role):
-        if role == Qt.DisplayRole:
-            _, text = self.todos[index.row()]
-            return text
-        
-        if role == Qt.DecorationRole:
-            status, _ = self.todos[index.row()]
-            if status:
-                return tick
-
-    def rowCount(self, index):
-        return len(self.todos)
-
 class MainWindow(QMainWindow, Ui_MainWindow):
 
     #Inicializamos
@@ -66,8 +50,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         super(QMainWindow,self).__init__(parent=None)
         self.ui = Ui_MainWindow()
         self.setupUi(self)
-        self.model = TodoModel()
-        self.load()
         self.lineEdit = QLineEdit()
         self.textPreview = QWebEngineView()
         self.textPreview.setContextMenuPolicy(Qt.NoContextMenu)
@@ -75,6 +57,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.clipboard = QApplication.clipboard()
         self.statusBar = QStatusBar()
         self.cursor = QtGui.QTextCursor()
+        self.undoStack = QUndoStack()
+        self.undoCommand = QUndoCommand()
         self.setFocus()
         self._createActions()
         self._createMenuBar()
@@ -85,9 +69,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         menuBar = QMenuBar(self)
 
         #Añadimos los tres menus: archivo, editar y ayuda
-        fileMenu = QMenu("&Archivo", self)
-        editMenu = QMenu("&Editar", self)
-        helpMenu = QMenu("&Ayuda", self)
+        fileMenu = QMenu("&File", self)
+        editMenu = QMenu("&Edit", self)
+        helpMenu = QMenu("&Help", self)
 
         #Añadimos el menu archivo con sus acciones
         menuBar.addMenu(fileMenu)
@@ -116,8 +100,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     #Creamos la barra de herramientas
     def _createToolBars(self):
-        fileToolBar = QToolBar('Archivo',self)
-        editToolBar = QToolBar('Archivo',self)
+        fileToolBar = QToolBar('File',self)
+        editToolBar = QToolBar('Edit',self)
 
         self.addToolBar(fileToolBar)
         self.addToolBar(editToolBar)
@@ -152,63 +136,60 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     #Creamos las acciones que se añaden a los menus
     def _createActions(self):
 
-        self.newFile = QAction(QIcon("resources/newFile.png"),'Nuevo', self, triggered = self.fileNew, shortcut = 'Ctrl+n')
-        self.newFile.setStatusTip('Nuevo archivo')
+        self.newFile = QAction(QIcon("resources/icons/newFile.png"),'New', self, triggered = self.fileNew, shortcut = 'Ctrl+n')
+        self.newFile.setStatusTip('New file')
 
-        self.openFile = QAction(QIcon("resources/openFile.png"),'Abrir', self, triggered = self.fileOpen, shortcut = 'Ctrl+a')
-        self.openFile.setStatusTip('Abrir archivo')
+        self.openFile = QAction(QIcon("resources/icons/openFile.png"),'Open', self, triggered = self.fileOpen, shortcut = 'Ctrl+a')
+        self.openFile.setStatusTip('Open file')
 
-        self.saveFile = QAction(QIcon("resources/saveFile.png"),'&Guardar', self, triggered = self.fileSave, shortcut = 'Ctrl+s')
-        self.saveFile.setStatusTip('Guardar cambios')
+        self.saveFile = QAction(QIcon("resources/icons/saveFile.png"),'Save', self, triggered = self.fileSave, shortcut = 'Ctrl+s')
+        self.saveFile.setStatusTip('Save changes')
 
-        self.closeApp = QAction('Cerrar', self, triggered = self.close, shortcut = 'Ctrl+q')
-        self.closeApp.setStatusTip('Cerrar aplicacion')
+        self.closeApp = QAction('Close', self, triggered = self.close, shortcut = 'Ctrl+q')
+        self.closeApp.setStatusTip('Close app')
 
-        self.copyText = QAction(QIcon("resources/copy.png"),'Copiar', self, triggered = self.textCopy, shortcut = 'Ctrl+c')
-        self.copyText.setStatusTip('Copiar el texto seleccionado')
+        self.copyText = QAction(QIcon("resources/icons/copy.png"),'Copy', self, triggered = self.textCopy, shortcut = 'Ctrl+c')
+        self.copyText.setStatusTip('Copy selected text')
 
-        self.pasteText = QAction(QIcon("resources/paste.png"),'Pegar', self, triggered = self.textPaste, shortcut = 'Ctrl+v')
-        self.pasteText.setStatusTip('Pegar del portapapeles')
+        self.pasteText = QAction(QIcon("resources/icons/paste.png"),'Paste', self, triggered = self.textPaste, shortcut = 'Ctrl+v')
+        self.pasteText.setStatusTip('Paste from clipboard')
 
-        self.cutText = QAction(QIcon("resources/cut.png"),'Cortar', self, triggered = self.textCut, shortcut = 'Ctrl+x')
-        self.cutText.setStatusTip('Cortar el texto seleccionado')
+        self.cutText = QAction(QIcon("resources/icons/cut.png"),'Cut', self, triggered = self.textCut, shortcut = 'Ctrl+x')
+        self.cutText.setStatusTip('Cut selected text')
 
-        self.undo = QAction(QIcon("resources/undo.png"), 'Deshacer', self, shortcut = 'Ctrl+z')
-        self.undo.setStatusTip('Deshacer')
+        self.undo = QAction(QIcon("resources/icons/undo.png"), 'Undo', self, shortcut = 'Ctrl+z')
+        self.undo.setStatusTip('Undo')
         #self.undo.triggered.connect(QUndoCommand.undo())
 
-        self.redo = QAction(QIcon("resources/redo.png"), 'Rehacer', self, shortcut = 'Ctrl+y')
-        self.redo.setStatusTip('Rehacer')
+        self.redo = QAction(QIcon("resources/icons/redo.png"), 'Redo', self, shortcut = 'Ctrl+y')
+        self.redo.setStatusTip('Redo')
         #self.redo.triggered.connect(QUndoCommand.redo())
 
-        self.header1 = QAction(QIcon("resources/header1.png"), 'Título 1', self)
-        self.header1.setShortcut('Ctrl+h+1')
-        self.header1.setStatusTip('Título 1')
+        self.header1 = QAction(QIcon("resources/icons/header1.png"), 'Header 1', self, triggered = self.textH1, shortcut='Ctrl+h+1')
+        self.header1.setStatusTip('Header 1')
 
-        self.header2 = QAction(QIcon("resources/header2.png"), 'Título 2', self)
-        self.header2.setShortcut('Ctrl+h+2')
-        self.header2.setStatusTip('Título 2')
+        self.header2 = QAction(QIcon("resources/icons/header2.png"), 'Header 2', self, triggered = self.textH2, shortcut='Ctrl+h+2')
+        self.header2.setStatusTip('Header 2')
 
-        self.header3 = QAction(QIcon("resources/header3.png"), 'Título 3', self)
-        self.header3.setShortcut('Ctrl+h+3')
-        self.header3.setStatusTip('Título 3')
+        self.header3 = QAction(QIcon("resources/icons/header3.png"), 'Header 3', self, triggered = self.textH3, shortcut='Ctrl+h+3')
+        self.header3.setStatusTip('Header 3')
 
-        self.bold = QAction(QIcon("resources/bold.png"), 'Negrita', self, triggered = self.textBold, shortcut = 'Ctrl+n')
-        self.bold.setStatusTip('Texto marcado')
+        self.bold = QAction(QIcon("resources/icons/bold.png"), 'Bold', self, triggered = self.textBold, shortcut = 'Ctrl+n')
+        self.bold.setStatusTip('Bold text')
 
-        self.italic = QAction(QIcon("resources/italic.png"), 'Cursiva', self, triggered = self.textItalic, shortcut = 'Ctrl+k')
-        self.italic.setStatusTip('Texto en cursiva')
+        self.italic = QAction(QIcon("resources/icons/italic.png"), 'Italic', self, triggered = self.textItalic, shortcut = 'Ctrl+k')
+        self.italic.setStatusTip('Italic text')
 
-        self.help = QAction('Ayuda', self)
+        self.help = QAction('Help', self)
         self.help.setShortcut('Ctrl+h')
-        self.help.setStatusTip('Ayuda')
+        self.help.setStatusTip('Help')
 
-        self.about = QAction('Acerda de TextEdit', self)
-        self.about.setStatusTip('Acerda de TextEdit')
+        self.about = QAction('About TextEdit', self)
+        self.about.setStatusTip('About TextEdit')
 
     #Función cerrar que pregunta al usuario si está seguro antes de hacerlo
     def close(self):
-        choice = QMessageBox.question(self, 'Salir', '¿Está seguro de que quiere cerrar TextEdit?', QMessageBox.Yes | QMessageBox.No)
+        choice = QMessageBox.question(self, 'Exit', 'Are you sure you want to exit TextEdit?', QMessageBox.Yes | QMessageBox.No)
         if choice == QMessageBox.Si:
             qApp.quit
         else: pass
@@ -235,7 +216,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     #Función abrir documento de texto
     def fileOpen(self):
         #Establecemos el archivo que queremos abrir 
-        file,_ = QFileDialog.getOpenFileName(self, 'Abrir archivo')
+        file,_ = QFileDialog.getOpenFileName(self, 'Open file')
 
         #Añadimos este condicional por si el usuario cancela
         if not file:
@@ -268,7 +249,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     def fileNew(self):
         #Establecemos el lugar en el que vamos a guardar el archivo
-        file,_ = QFileDialog.getSaveFileName()
+        file,_ = QFileDialog.getSaveFileName(self, 'New file')
 
         #Añadimos este condicional por si el usuario cancela
         if not file:
@@ -299,6 +280,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     #Función para guardar los cambios
     def fileSave(self):  
+
+        if not self.filePath:
+            return
 
         #Obtengo la ruta del archivo abierto
         file = self.filePath
@@ -340,61 +324,37 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         if QTextCursor.selectedText(tc) != '':
             tc.insertText('*' + QTextCursor.selectedText(tc) + '*')
 
-    def add(self):
-        """
-        Add an item to our todo list, getting the text from the QLineEdit .todoEdit
-        and then clearing it.
-        """
-        text = self.todoEdit.text()
-        if text: # Don't add empty strings.
-            # Access the list via the model.
-            self.model.todos.append((False, text))
-            # Trigger refresh.        
-            self.model.layoutChanged.emit()
-            # Empty the input
-            self.todoEdit.setText("")
-            self.save()
-        
-    def delete(self):
-        indexes = self.todoView.selectedIndexes()
-        if indexes:
-            # Indexes is a list of a single item in single-select mode.
-            index = indexes[0]
-            # Remove the item and refresh.
-            del self.model.todos[index.row()]
-            self.model.layoutChanged.emit()
-            # Clear the selection (as it is no longer valid).
-            self.todoView.clearSelection()
-            self.save()
-            
-    def complete(self):
-        indexes = self.todoView.selectedIndexes()
-        if indexes:
-            index = indexes[0]
-            row = index.row()
-            status, text = self.model.todos[row]
-            self.model.todos[row] = (True, text)
-            # .dataChanged takes top-left and bottom right, which are equal 
-            # for a single selection.
-            self.model.dataChanged.emit(index, index)
-            # Clear the selection (as it is no longer valid).
-            self.todoView.clearSelection()
-            self.save()
-    
-    def load(self):
-        try:
-            with open('data.db', 'r') as f:
-                self.model.todos = json.load(f)
-        except Exception:
-            pass
+    #Función h1
+    def textH1(self):
+        tc = self.textEdit.textCursor()
+        if QTextCursor.selectedText(tc) != '':
+            tc.insertText('# ' + QTextCursor.selectedText(tc))
 
-    def save(self):
-        with open('data.db', 'w') as f:
-            data = json.dump(self.model.todos, f)
+    #Función h2
+    def textH2(self):
+        tc = self.textEdit.textCursor()
+        if QTextCursor.selectedText(tc) != '':
+            tc.insertText('## ' + QTextCursor.selectedText(tc))
 
+    #Función h3
+    def textH3(self):
+        tc = self.textEdit.textCursor()
+        if QTextCursor.selectedText(tc) != '':
+            tc.insertText('### ' + QTextCursor.selectedText(tc))
 
-app = QApplication(sys.argv)
-GUI = MainWindow()
-GUI.show()
-app.exec()
+if __name__ == '__main__':
+    app = QApplication(sys.argv)
+
+    #Set language
+    settings = QtCore.QSettings('TextEdit','SettingsDesktop')
+    language = locale.getdefaultlocale()
+    settings.value('language',language)
+    translation = f'{language}.qm'
+    translator = QtCore.QTranslator()
+    translator.load(translation,f'resources/i18n/')
+    app.installTranslator(translator)
+
+    GUI = MainWindow()
+    GUI.show()
+    app.exec()
 
