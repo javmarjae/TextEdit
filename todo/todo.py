@@ -16,6 +16,7 @@ from markdown import markdown
 from PyQt5.QtNetwork import QNetworkAccessManager, QNetworkReply, QNetworkRequest
 from PyQt5.QtWebChannel import QWebChannel
 from i18n import trans
+from commands import *
 
 
 CURRENT_DIR = os.path.dirname(os.path.realpath(__file__))
@@ -157,6 +158,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.cutText = QAction(QIcon("resources/icons/cut.png"),trans('Cut'), self, triggered = self.textCut, shortcut = 'Ctrl+x')
         self.cutText.setStatusTip(trans('Cut selected text'))
 
+        self.undoStack.indexChanged.connect(self.writeFile)
+
         self.undo = self.undoStack.createUndoAction(self, self.tr('Undo'))
         self.undo.setIcon(QIcon('resources/icons/undo.png'))
         self.undo.setShortcut('Ctrl+z')
@@ -167,7 +170,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.undoButton.setText(trans('Undo'))
         self.undoButton.setToolTip(trans('Undo'))
         self.undoButton.setDefaultAction(self.undo)
-        self.undoButton.setEnabled(False)
+        self.undoButton.setEnabled(True)
         self.undoButton.setIcon(QIcon('resources/icons/undo.png'))
         
         self.redo = self.undoStack.createRedoAction(self, self.tr('Redo'))
@@ -181,7 +184,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.redoButton.setText(trans('Redo'))
         self.redoButton.setToolTip(trans('Redo'))
         self.redoButton.setDefaultAction(self.redo)
-        self.redoButton.setEnabled(False)
+        self.redoButton.setEnabled(True)
         self.redoButton.setIcon(QIcon('resources/icons/redo.png'))
 
         self.header1 = QAction(QIcon("resources/icons/header1.png"), trans('Header 1'), self, triggered = self.textH1, shortcut='Ctrl+h+1')
@@ -258,13 +261,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         lay.addWidget(self.textEdit,5)
         lay.addWidget(self.textPreview,5)
 
-        #Abrimos el archivo y guardamos en una variable todo el texto que contiene para mostrarlo
+        #Abrimos el archivo y lo mandamos a la funcion para escribir
         with open(file, 'r', encoding='utf-8') as f:
             text = f.read()
-            
-        with open(file, 'w', encoding='utf-8') as f:
-            f.write(text)
-            self.textEdit.setText(text) 
+        self.writeFile(file, text)
 
     def fileNew(self):
         #Establecemos el lugar en el que vamos a guardar el archivo
@@ -291,11 +291,15 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         lay.addWidget(self.textEdit,5)
         lay.addWidget(self.textPreview,5)
 
-        #Abrimos el archivo con opción de escritura
-        if file:
-            with open(file, 'w', encoding='utf-8'):
-                text = ''
-                self.textEdit.setText(text)
+        #Abrimos el archivo en la función para escribir
+        self.writeFile(file, text = '')
+
+    #Función para escribir en un archivo
+    def writeFile(self,file,text):
+        with open(file, 'w', encoding='utf-8') as f:
+            f.write(text)
+            self.textEdit.setText(text)
+            
 
     #Función para guardar los cambios
     def fileSave(self):  
@@ -309,7 +313,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         #Definimos la función de guardado de un archivo
         with open(file, 'w', encoding='utf-8') as file:
             text = self.textEdit.toPlainText()
-            file.write(text)    
+            file.write(text) 
+
+        self.statusBar().showMessage('Saved',2000)
 
     #Función copiar
     def textCopy(self):
@@ -335,7 +341,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def textBold(self):
         tc = self.textEdit.textCursor()
         if QTextCursor.selectedText(tc) != '':
-            tc.insertText('**' + QTextCursor.selectedText(tc) + '**')
+            text = '**' + QTextCursor.selectedText(tc) + '**'
+            tc.insertText(text)
 
     #Función cursiva
     def textItalic(self):
@@ -353,7 +360,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def textH2(self):
         tc = self.textEdit.textCursor()
         if QTextCursor.selectedText(tc) != '':
-            tc.insertText('## ' + QTextCursor.selectedText(tc))
+            tc.insertText('## ' + QTextCursor.selectedText(tc))  
 
     #Función h3
     def textH3(self):
