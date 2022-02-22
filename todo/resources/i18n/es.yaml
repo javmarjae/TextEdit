@@ -17,9 +17,9 @@
  Cut selected text: Cortar el texto seleccionado
  Undo: Deshacer
  Redo: Rehacer
- Header 1: Título 1
- Header 2: Título 2
- Header 3: Título 3
+ Header 1: Titulo 1
+ Header 2: Titulo 2
+ Header 3: Titulo 3
  Bold: Negrita
  Bold text: Marcar texto
  Italic: Cursiva
@@ -27,5 +27,5 @@
  Help: Ayuda
  About: Acerca de
  Exit: Salir
- Are you sure you want to exit TextEdit?: ¿Está seguro que quiere salir de TextEdit?
+ Are you sure you want to exit TextEdit?: ¿Esta seguro que quiere salir de TextEdit?
  

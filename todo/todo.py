@@ -50,10 +50,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         super(QMainWindow,self).__init__(parent=None)
         self.ui = Ui_MainWindow()
         self.setupUi(self)
-        self.lineEdit = QLineEdit()
         self.textPreview = QWebEngineView()
         self.textPreview.setContextMenuPolicy(Qt.NoContextMenu)
         self.textEdit = QTextEdit()
+        self.lineEdit = QLineEdit()
         self.clipboard = QApplication.clipboard()
         self.statusBar = QStatusBar()
         self.cursor = QtGui.QTextCursor()
@@ -69,9 +69,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         menuBar = QMenuBar(self)
 
         #Añadimos los tres menus: archivo, editar y ayuda
-        fileMenu = QMenu("&File", self)
-        editMenu = QMenu("&Edit", self)
-        helpMenu = QMenu("&Help", self)
+        fileMenu = QMenu(trans("&File"), self)
+        editMenu = QMenu(trans("&Edit"), self)
+        helpMenu = QMenu(trans("&Help"), self)
 
         #Añadimos el menu archivo con sus acciones
         menuBar.addMenu(fileMenu)
@@ -100,8 +100,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     #Creamos la barra de herramientas
     def _createToolBars(self):
-        fileToolBar = QToolBar('File',self)
-        editToolBar = QToolBar('Edit',self)
+        fileToolBar = QToolBar(trans('File'),self)
+        editToolBar = QToolBar(trans('Edit'),self)
 
         self.addToolBar(fileToolBar)
         self.addToolBar(editToolBar)
@@ -126,8 +126,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         editToolBar.addAction(self.header2)
         editToolBar.addAction(self.header3)
         editToolBar.addSeparator()
-        editToolBar.addAction(self.undo)
-        editToolBar.addAction(self.redo)
+        editToolBar.addWidget(self.undoButton)
+        editToolBar.addWidget(self.redoButton)
 
         editToolBar.setMovable(False)
        
@@ -136,60 +136,79 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     #Creamos las acciones que se añaden a los menus
     def _createActions(self):
 
-        self.newFile = QAction(QIcon("resources/icons/newFile.png"),'New', self, triggered = self.fileNew, shortcut = 'Ctrl+n')
-        self.newFile.setStatusTip('New file')
+        self.newFile = QAction(QIcon("resources/icons/newFile.png"),trans('New'), self, triggered = self.fileNew, shortcut = 'Ctrl+n')
+        self.newFile.setStatusTip(trans('New file'))
 
-        self.openFile = QAction(QIcon("resources/icons/openFile.png"),'Open', self, triggered = self.fileOpen, shortcut = 'Ctrl+a')
-        self.openFile.setStatusTip('Open file')
+        self.openFile = QAction(QIcon("resources/icons/openFile.png"),trans('Open'), self, triggered = self.fileOpen, shortcut = 'Ctrl+a')
+        self.openFile.setStatusTip(trans('Open file'))
 
-        self.saveFile = QAction(QIcon("resources/icons/saveFile.png"),'Save', self, triggered = self.fileSave, shortcut = 'Ctrl+s')
-        self.saveFile.setStatusTip('Save changes')
+        self.saveFile = QAction(QIcon("resources/icons/saveFile.png"),trans('Save'), self, triggered = self.fileSave, shortcut = 'Ctrl+s')
+        self.saveFile.setStatusTip(trans('Save changes'))
 
         self.closeApp = QAction('Close', self, triggered = self.close, shortcut = 'Ctrl+q')
-        self.closeApp.setStatusTip('Close app')
+        self.closeApp.setStatusTip(trans('Close app'))
 
-        self.copyText = QAction(QIcon("resources/icons/copy.png"),'Copy', self, triggered = self.textCopy, shortcut = 'Ctrl+c')
-        self.copyText.setStatusTip('Copy selected text')
+        self.copyText = QAction(QIcon("resources/icons/copy.png"),trans('Copy'), self, triggered = self.textCopy, shortcut = 'Ctrl+c')
+        self.copyText.setStatusTip(trans('Copy selected text'))
 
-        self.pasteText = QAction(QIcon("resources/icons/paste.png"),'Paste', self, triggered = self.textPaste, shortcut = 'Ctrl+v')
-        self.pasteText.setStatusTip('Paste from clipboard')
+        self.pasteText = QAction(QIcon("resources/icons/paste.png"),trans('Paste'), self, triggered = self.textPaste, shortcut = 'Ctrl+v')
+        self.pasteText.setStatusTip(trans('Paste from clipboard'))
 
-        self.cutText = QAction(QIcon("resources/icons/cut.png"),'Cut', self, triggered = self.textCut, shortcut = 'Ctrl+x')
-        self.cutText.setStatusTip('Cut selected text')
+        self.cutText = QAction(QIcon("resources/icons/cut.png"),trans('Cut'), self, triggered = self.textCut, shortcut = 'Ctrl+x')
+        self.cutText.setStatusTip(trans('Cut selected text'))
 
-        self.undo = QAction(QIcon("resources/icons/undo.png"), 'Undo', self, shortcut = 'Ctrl+z')
+        self.undo = self.undoStack.createUndoAction(self, self.tr('Undo'))
+        self.undo.setIcon(QIcon('resources/icons/undo.png'))
+        self.undo.setShortcut('Ctrl+z')
+        #self.undo = QAction(QIcon("resources/icons/undo.png"), 'Undo', self, shortcut = 'Ctrl+z')
         self.undo.setStatusTip('Undo')
-        #self.undo.triggered.connect(QUndoCommand.undo())
 
-        self.redo = QAction(QIcon("resources/icons/redo.png"), 'Redo', self, shortcut = 'Ctrl+y')
+        self.undoButton = QToolButton()
+        self.undoButton.setText(trans('Undo'))
+        self.undoButton.setToolTip(trans('Undo'))
+        self.undoButton.setDefaultAction(self.undo)
+        self.undoButton.setEnabled(False)
+        self.undoButton.setIcon(QIcon('resources/icons/undo.png'))
+        
+        self.redo = self.undoStack.createRedoAction(self, self.tr('Redo'))
+        self.redo.setIcon(QIcon('resources/icons/redo.png'))
+        self.redo.setShortcut('Ctrl+y')
+        #self.redo = QAction(QIcon("resources/icons/redo.png"), 'Redo', self, shortcut = 'Ctrl+y')
         self.redo.setStatusTip('Redo')
         #self.redo.triggered.connect(QUndoCommand.redo())
 
-        self.header1 = QAction(QIcon("resources/icons/header1.png"), 'Header 1', self, triggered = self.textH1, shortcut='Ctrl+h+1')
-        self.header1.setStatusTip('Header 1')
+        self.redoButton = QToolButton()
+        self.redoButton.setText(trans('Redo'))
+        self.redoButton.setToolTip(trans('Redo'))
+        self.redoButton.setDefaultAction(self.redo)
+        self.redoButton.setEnabled(False)
+        self.redoButton.setIcon(QIcon('resources/icons/redo.png'))
 
-        self.header2 = QAction(QIcon("resources/icons/header2.png"), 'Header 2', self, triggered = self.textH2, shortcut='Ctrl+h+2')
-        self.header2.setStatusTip('Header 2')
+        self.header1 = QAction(QIcon("resources/icons/header1.png"), trans('Header 1'), self, triggered = self.textH1, shortcut='Ctrl+h+1')
+        self.header1.setStatusTip(trans('Header 1'))
 
-        self.header3 = QAction(QIcon("resources/icons/header3.png"), 'Header 3', self, triggered = self.textH3, shortcut='Ctrl+h+3')
-        self.header3.setStatusTip('Header 3')
+        self.header2 = QAction(QIcon("resources/icons/header2.png"), trans('Header 2'), self, triggered = self.textH2, shortcut='Ctrl+h+2')
+        self.header2.setStatusTip(trans('Header 2'))
 
-        self.bold = QAction(QIcon("resources/icons/bold.png"), 'Bold', self, triggered = self.textBold, shortcut = 'Ctrl+n')
-        self.bold.setStatusTip('Bold text')
+        self.header3 = QAction(QIcon("resources/icons/header3.png"), trans('Header 3'), self, triggered = self.textH3, shortcut='Ctrl+h+3')
+        self.header3.setStatusTip(trans('Header 3'))
 
-        self.italic = QAction(QIcon("resources/icons/italic.png"), 'Italic', self, triggered = self.textItalic, shortcut = 'Ctrl+k')
-        self.italic.setStatusTip('Italic text')
+        self.bold = QAction(QIcon("resources/icons/bold.png"), trans('Bold'), self, triggered = self.textBold, shortcut = 'Ctrl+n')
+        self.bold.setStatusTip(trans('Bold text'))
 
-        self.help = QAction('Help', self)
+        self.italic = QAction(QIcon("resources/icons/italic.png"), trans('Italic'), self, triggered = self.textItalic, shortcut = 'Ctrl+k')
+        self.italic.setStatusTip(trans('Italic text'))
+
+        self.help = QAction(trans('Help'), self)
         self.help.setShortcut('Ctrl+h')
-        self.help.setStatusTip('Help')
+        self.help.setStatusTip(trans('Help'))
 
-        self.about = QAction('About TextEdit', self)
-        self.about.setStatusTip('About TextEdit')
+        self.about = QAction(trans('About TextEdit'), self)
+        self.about.setStatusTip(trans('About TextEdit'))
 
     #Función cerrar que pregunta al usuario si está seguro antes de hacerlo
     def close(self):
-        choice = QMessageBox.question(self, 'Exit', 'Are you sure you want to exit TextEdit?', QMessageBox.Yes | QMessageBox.No)
+        choice = QMessageBox.question(self, trans('Exit'), trans('Are you sure you want to exit TextEdit?'), QMessageBox.Yes | QMessageBox.No)
         if choice == QMessageBox.Si:
             qApp.quit
         else: pass
@@ -216,7 +235,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     #Función abrir documento de texto
     def fileOpen(self):
         #Establecemos el archivo que queremos abrir 
-        file,_ = QFileDialog.getOpenFileName(self, 'Open file')
+        file,_ = QFileDialog.getOpenFileName(self, trans('Open file'))
 
         #Añadimos este condicional por si el usuario cancela
         if not file:
@@ -249,7 +268,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     def fileNew(self):
         #Establecemos el lugar en el que vamos a guardar el archivo
-        file,_ = QFileDialog.getSaveFileName(self, 'New file')
+        file,_ = QFileDialog.getSaveFileName(self, trans('New file'))
 
         #Añadimos este condicional por si el usuario cancela
         if not file:
