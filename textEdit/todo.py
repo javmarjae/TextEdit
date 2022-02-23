@@ -14,10 +14,13 @@ from PyQt5.QtWebEngineWidgets import QWebEngineView, QWebEnginePage
 from PyQt5.QtCore import Qt, pyqtProperty, pyqtSignal, QObject, QTextCodec, QUrl
 from markdown import markdown
 from PyQt5.QtWebChannel import QWebChannel
-from i18n import trans
-from commands import *
+from utils.i18n import trans
+from utils.commands import *
 from controllers.views import ViewsController
-
+from controllers.file import FileController
+from controllers.textEditingTools import TextEditingTools
+from controllers.bars import ToolBars, MenuBars
+from utils.widgets.actions import Actions
 
 CURRENT_DIR = os.path.dirname(os.path.realpath(__file__))
 
@@ -42,6 +45,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.undoStack = QUndoStack()
         self.undoCommand = QUndoCommand()
         self.setFocus()
+        self.fileController = FileController(self)
+        self.tools = TextEditingTools(self)
         self._createActions()
         self._createMenuBar()
         self._createToolBars()
@@ -118,28 +123,28 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     #Creamos las acciones que se añaden a los menus
     def _createActions(self):
 
-        self.newFile = QAction(QIcon("textEdit/resources/icons/newFile.png"),trans('New'), self, triggered = self.fileNew, shortcut = 'Ctrl+n')
+        self.newFile = QAction(QIcon("textEdit/resources/icons/newFile.png"),trans('New'), self, triggered = self.fileController.fileNew, shortcut = 'Ctrl+n')
         self.newFile.setStatusTip(trans('New file'))
 
-        self.openFile = QAction(QIcon("textEdit/resources/icons/openFile.png"),trans('Open'), self, triggered = self.fileOpen, shortcut = 'Ctrl+a')
+        self.openFile = QAction(QIcon("textEdit/resources/icons/openFile.png"),trans('Open'), self, triggered = self.fileController.fileOpen, shortcut = 'Ctrl+a')
         self.openFile.setStatusTip(trans('Open file'))
 
-        self.saveFile = QAction(QIcon("textEdit/resources/icons/saveFile.png"),trans('Save'), self, triggered = self.fileSave, shortcut = 'Ctrl+s')
+        self.saveFile = QAction(QIcon("textEdit/resources/icons/saveFile.png"),trans('Save'), self, triggered = self.fileController.fileSave, shortcut = 'Ctrl+s')
         self.saveFile.setStatusTip(trans('Save changes'))
 
         self.closeApp = QAction('Close', self, triggered = self.close, shortcut = 'Ctrl+q')
         self.closeApp.setStatusTip(trans('Close app'))
 
-        self.copyText = QAction(QIcon("textEdit/resources/icons/copy.png"),trans('Copy'), self, triggered = self.textCopy, shortcut = 'Ctrl+c')
+        self.copyText = QAction(QIcon("textEdit/resources/icons/copy.png"),trans('Copy'), self, triggered = self.tools.textCopy, shortcut = 'Ctrl+c')
         self.copyText.setStatusTip(trans('Copy selected text'))
 
-        self.pasteText = QAction(QIcon("textEdit/resources/icons/paste.png"),trans('Paste'), self, triggered = self.textPaste, shortcut = 'Ctrl+v')
+        self.pasteText = QAction(QIcon("textEdit/resources/icons/paste.png"),trans('Paste'), self, triggered = self.tools.textPaste, shortcut = 'Ctrl+v')
         self.pasteText.setStatusTip(trans('Paste from clipboard'))
 
-        self.cutText = QAction(QIcon("textEdit/resources/icons/cut.png"),trans('Cut'), self, triggered = self.textCut, shortcut = 'Ctrl+x')
+        self.cutText = QAction(QIcon("textEdit/resources/icons/cut.png"),trans('Cut'), self, triggered = self.tools.textCut, shortcut = 'Ctrl+x')
         self.cutText.setStatusTip(trans('Cut selected text'))
 
-        self.undoStack.indexChanged.connect(self.writeFile)
+        self.undoStack.indexChanged.connect(self.fileController.writeFile)
 
         self.undo = self.undoStack.createUndoAction(self, self.tr('Undo'))
         self.undo.setIcon(QIcon('textEdit/resources/icons/undo.png'))
@@ -168,19 +173,19 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.redoButton.setEnabled(True)
         self.redoButton.setIcon(QIcon('textEdit/resources/icons/redo.png'))
 
-        self.header1 = QAction(QIcon("textEdit/resources/icons/header1.png"), trans('Header 1'), self, triggered = self.textH1, shortcut='Ctrl+h+1')
+        self.header1 = QAction(QIcon("textEdit/resources/icons/header1.png"), trans('Header 1'), self, triggered = self.tools.textH1, shortcut='Ctrl+h+1')
         self.header1.setStatusTip(trans('Header 1'))
 
-        self.header2 = QAction(QIcon("textEdit/resources/icons/header2.png"), trans('Header 2'), self, triggered = self.textH2, shortcut='Ctrl+h+2')
+        self.header2 = QAction(QIcon("textEdit/resources/icons/header2.png"), trans('Header 2'), self, triggered = self.tools.textH2, shortcut='Ctrl+h+2')
         self.header2.setStatusTip(trans('Header 2'))
 
-        self.header3 = QAction(QIcon("textEdit/resources/icons/header3.png"), trans('Header 3'), self, triggered = self.textH3, shortcut='Ctrl+h+3')
+        self.header3 = QAction(QIcon("textEdit/resources/icons/header3.png"), trans('Header 3'), self, triggered = self.tools.textH3, shortcut='Ctrl+h+3')
         self.header3.setStatusTip(trans('Header 3'))
 
-        self.bold = QAction(QIcon("textEdit/resources/icons/bold.png"), trans('Bold'), self, triggered = self.textBold, shortcut = 'Ctrl+n')
+        self.bold = QAction(QIcon("textEdit/resources/icons/bold.png"), trans('Bold'), self, triggered = self.tools.textBold, shortcut = 'Ctrl+n')
         self.bold.setStatusTip(trans('Bold text'))
 
-        self.italic = QAction(QIcon("textEdit/resources/icons/italic.png"), trans('Italic'), self, triggered = self.textItalic, shortcut = 'Ctrl+k')
+        self.italic = QAction(QIcon("textEdit/resources/icons/italic.png"), trans('Italic'), self, triggered = self.tools.textItalic, shortcut = 'Ctrl+k')
         self.italic.setStatusTip(trans('Italic text'))
 
         self.help = QAction(trans('Help'), self)
@@ -196,88 +201,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         if choice == QMessageBox.Si:
             qApp.quit
         else: pass
-
-    #Función abrir documento de texto
-    def fileOpen(self):
-        #Establecemos el archivo que queremos abrir 
-        file,_ = QFileDialog.getOpenFileName(self, trans('Open file'))
-
-        #Añadimos este condicional por si el usuario cancela
-        if not file:
-            return
-
-        #Guardamos la ruta
-        self.filePath = file
-
-        name = os.path.basename(self.filePath)
-        self.setWindowTitle('%s | TextEdit' %name)
-
-        #Establecemos el widget para escritura y lectura en HTML en paralelo
-        self.textEdit = QTextEdit()
-        central_widget = QWidget()
-        self.setCentralWidget(central_widget)
-
-        self.views.openSubWindow()
-
-        lay = QHBoxLayout(central_widget)
-        lay.addWidget(self.textEdit,5)
-        lay.addWidget(self.textPreview,5)
-
-        #Abrimos el archivo y lo mandamos a la funcion para escribir
-        with open(file, 'r', encoding='utf-8') as f:
-            text = f.read()
-        self.writeFile(file, text)
-
-    def fileNew(self):
-        #Establecemos el lugar en el que vamos a guardar el archivo
-        file,_ = QFileDialog.getSaveFileName(self, trans('New file'))
-
-        #Añadimos este condicional por si el usuario cancela
-        if not file:
-            return
-
-        #Guardamos la ruta
-        self.filePath = file
-
-        name = os.path.basename(self.filePath)
-        self.setWindowTitle('%s | TextEdit' %name)
-
-        #Establecemos el widget para escritura y lectura en HTML en paralelo
-        self.textEdit = QTextEdit()
-        central_widget = QWidget()
-        self.setCentralWidget(central_widget)
-
-        self.views.openSubWindow()
-
-        lay = QHBoxLayout(central_widget)
-        lay.addWidget(self.textEdit,5)
-        lay.addWidget(self.textPreview,5)
-
-        #Abrimos el archivo en la función para escribir
-        self.writeFile(file, text = '')
-
-    #Función para escribir en un archivo
-    def writeFile(self,file,text):
-        with open(file, 'w', encoding='utf-8') as f:
-            f.write(text)
-            self.textEdit.setText(text)
-            
-
-    #Función para guardar los cambios
-    def fileSave(self):  
-
-        if not self.filePath:
-            return
-
-        #Obtengo la ruta del archivo abierto
-        file = self.filePath
-
-        #Definimos la función de guardado de un archivo
-        with open(file, 'w', encoding='utf-8') as file:
-            text = self.textEdit.toPlainText()
-            file.write(text) 
-
-        self.statusBar().showMessage('Saved',2000)
 
     #Función copiar
     def textCopy(self):
