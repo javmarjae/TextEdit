@@ -13,6 +13,9 @@ class PreviewPage(QWebEnginePage):
     pass
 
 class ViewsController(Controller):
+
+    def __init__(self, app):
+        super().__init__(app)
     
     #Función para abrir el visualizador en HTML del texto en markdown
     def openSubWindow(self):

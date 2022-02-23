@@ -39,7 +39,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.textPreview = QWebEngineView()
         self.textPreview.setContextMenuPolicy(Qt.NoContextMenu)
         self.textEdit = QTextEdit()
-        self.lineEdit = QLineEdit()
         self.clipboard = QApplication.clipboard()
         self.statusBar = QStatusBar()
         self.cursor = QtGui.QTextCursor()
@@ -49,6 +48,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.createActions = Actions(self)
         self.menuBars = MenuBars(self)
         self.toolBars = ToolBars(self)
+
+        central_widget = QWidget()
+        self.setCentralWidget(central_widget)
+        lay = QHBoxLayout(central_widget)
+        lay.addWidget(self.textEdit,5)
+        lay.addWidget(self.textPreview,5)
 
     #Función cerrar que pregunta al usuario si está seguro antes de hacerlo
     def close(self):

@@ -31,7 +31,7 @@ class Actions:
         self.saveFile.setIcon(QIcon("textEdit/resources/icons/saveFile.png"))
         self.saveFile.setText(trans('Save'))
         self.saveFile.setShortcut('Ctrl+s')
-        self.openFile.triggered.connect(self.fileController.fileSave)
+        self.saveFile.triggered.connect(self.fileController.fileSaveChanges)
         self.saveFile.setStatusTip(trans('Save changes'))
 
         self.closeApp = QAction()

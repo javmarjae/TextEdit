@@ -6,6 +6,9 @@ from utils.i18n import trans
 
 
 class FileController(Controller):
+    def __init__(self, app):
+        super().__init__(app)
+        self.filePath = ''
 
     #Función abrir documento de texto
     def fileOpen(self):
@@ -22,21 +25,14 @@ class FileController(Controller):
         name = os.path.basename(self.filePath)
         self.app.setWindowTitle('%s | TextEdit' %name)
 
-        #Establecemos el widget para escritura y lectura en HTML en paralelo
-        central_widget = QWidget()
-        self.app.setCentralWidget(central_widget)
-
-        self.app.views.openSubWindow()
-
-        lay = QHBoxLayout(central_widget)
-        lay.addWidget(self.app.textEdit,5)
-        lay.addWidget(self.app.textPreview,5)
+        #Establecemos la lectura en HTML en paralelo
+        self.app.views.openSubWindow()  
 
         #Abrimos el archivo y lo mandamos a la funcion para escribir
         with open(file, 'r', encoding='utf-8') as f:
             text = f.read()
         self.writeFile(file, text)
-
+        
     #Función nuevo archivo
     def fileNew(self):
         #Establecemos el lugar en el que vamos a guardar el archivo
@@ -52,19 +48,12 @@ class FileController(Controller):
         name = os.path.basename(self.filePath)
         self.app.setWindowTitle('%s | TextEdit' %name)
 
-        #Establecemos el widget para escritura y lectura en HTML en paralelo
-        central_widget = QWidget()
-        self.app.setCentralWidget(central_widget)
-
-        self.app.views.openSubWindow()
-
-        lay = QHBoxLayout(central_widget)
-        lay.addWidget(self.app.textEdit,5)
-        lay.addWidget(self.app.textPreview,5)
+        #Establecemos la lectura en HTML en paralelo
+        self.app.views.openSubWindow()      
 
         #Abrimos el archivo en la función para escribir
         self.writeFile(file, text = '')
-
+        
     #Función para escribir en un archivo
     def writeFile(self,file,text):
         with open(file, 'w', encoding='utf-8') as f:
@@ -72,7 +61,7 @@ class FileController(Controller):
             self.app.textEdit.setText(text)
             
     #Función para guardar los cambios
-    def fileSave(self):  
+    def fileSaveChanges(self):  
 
         if not self.filePath:
             return

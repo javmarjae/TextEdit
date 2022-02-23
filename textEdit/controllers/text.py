@@ -4,6 +4,9 @@ from .base import Controller
 
 class TextEditingTools(Controller):
 
+    def __init__(self, app):
+        super().__init__(app)
+
     #Función copiar
     def textCopy(self):
         tc = self.app.textEdit.textCursor()
