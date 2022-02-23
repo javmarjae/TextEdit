@@ -25,7 +25,7 @@ from utils.widgets.actions import Actions
 
 CURRENT_DIR = os.path.dirname(os.path.realpath(__file__))
 
-qt_creator_file = "textEdit\mainwindow.ui"
+qt_creator_file = "textEdit\\resources\\ui\\mainwindow.ui"
 Ui_MainWindow, QtBaseClass = uic.loadUiType(qt_creator_file)
 
 class MainWindow(QMainWindow, Ui_MainWindow):
