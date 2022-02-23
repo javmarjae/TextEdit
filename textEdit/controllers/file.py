@@ -1,13 +1,14 @@
 import os
 from .base import Controller
 
-from PyQt5.QtWidgets import QWidget, QTextEdit, QHBoxLayout, QFileDialog
+from PyQt5.QtWidgets import QWidget, QHBoxLayout, QFileDialog
 from utils.i18n import trans
 
 
 class FileController(Controller):
+
     #Función abrir documento de texto
-    def fileOpen(self) -> None:
+    def fileOpen(self):
         #Establecemos el archivo que queremos abrir 
         file,_ = QFileDialog.getOpenFileName(self.app, trans('Open file'))
 
@@ -36,7 +37,8 @@ class FileController(Controller):
             text = f.read()
         self.writeFile(file, text)
 
-    def fileNew(self) -> None:
+    #Función nuevo archivo
+    def fileNew(self):
         #Establecemos el lugar en el que vamos a guardar el archivo
         file,_ = QFileDialog.getSaveFileName(self.app, trans('New file'))
 
@@ -64,22 +66,18 @@ class FileController(Controller):
         self.writeFile(file, text = '')
 
     #Función para escribir en un archivo
-    def writeFile(self,file,text) -> None:
+    def writeFile(self,file,text):
         with open(file, 'w', encoding='utf-8') as f:
             f.write(text)
             self.app.textEdit.setText(text)
             
-
     #Función para guardar los cambios
-    def fileSave(self) -> None:  
+    def fileSave(self):  
 
         if not self.filePath:
             return
 
-        #Obtengo la ruta del archivo abierto
-        file = self.filePath
-
         #Definimos la función de guardado de un archivo
-        with open(file, 'w', encoding='utf-8') as file:
+        with open(self.filePath, 'w', encoding='utf-8') as f:
             text = self.app.textEdit.toPlainText()
-            file.write(text)
+            f.write(text)

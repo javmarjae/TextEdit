@@ -4,19 +4,23 @@ from PyQt5.QtCore import Qt
 from utils.i18n import trans
 from utils.widgets.actions import Actions
 
-from .base import Controller
 
-class MenuBars(Controller):
+
+class MenuBars:
+
+    def __init__(self,app):
+        self.app = app
+        self.actions = Actions(self.app)
+        self.createMenuBar()
 
     def createMenuBar(self):
-        self.actions = Actions(self.app)
 
-        menuBar = QMenuBar(self)
+        menuBar = QMenuBar(self.app)
 
         #Añadimos los tres menus: archivo, editar y ayuda
-        fileMenu = QMenu(trans("File"), self)
-        editMenu = QMenu(trans("Edit"), self)
-        helpMenu = QMenu(trans("Help"), self)
+        fileMenu = QMenu(trans('File'), self.app)
+        editMenu = QMenu(trans('Edit'), self.app)
+        helpMenu = QMenu(trans('Help'), self.app)
 
         #Añadimos el menu archivo con sus acciones
         menuBar.addMenu(fileMenu)
@@ -41,15 +45,21 @@ class MenuBars(Controller):
         helpMenu.addSeparator()
         helpMenu.addAction(self.actions.about)
 
-        self.setMenuBar(menuBar)
+        self.app.setMenuBar(menuBar)
 
-class ToolBars(Controller):
 
-    def createToolBars(self):
+
+class ToolBars:
+
+    def __init__(self,app):
+        self.app = app
         self.actions = Actions(self.app)
+        self.createToolBars()
 
-        fileToolBar = QToolBar(trans('File'),self)
-        editToolBar = QToolBar(trans('Edit'),self)
+    def createToolBars(self):      
+
+        fileToolBar = QToolBar(trans('File'), self.app)
+        editToolBar = QToolBar(trans('Edit'), self.app)
 
         self.app.addToolBar(fileToolBar)
         self.app.addToolBar(editToolBar)

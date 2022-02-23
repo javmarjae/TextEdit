@@ -4,6 +4,7 @@ import sys
 
 import os
 import locale
+from tkinter import Menu
 import urllib.request
 from xml.dom.minidom import Document
 
@@ -19,7 +20,7 @@ from utils.commands import *
 from controllers.views import ViewsController
 from controllers.file import FileController
 from controllers.text import TextEditingTools
-from controllers.bars import ToolBars, MenuBars
+from utils.bars import ToolBars, MenuBars
 from utils.widgets.actions import Actions
 
 CURRENT_DIR = os.path.dirname(os.path.realpath(__file__))
@@ -46,75 +47,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.fileController = FileController(self)
         self.tools = TextEditingTools(self)
         self.createActions = Actions(self)
-        self._createMenuBar()
-        self._createToolBars()
-
-    #Creamos la barra de menu
-    def _createMenuBar(self):
-        menuBar = QMenuBar(self)
-
-        #Añadimos los tres menus: archivo, editar y ayuda
-        fileMenu = QMenu(trans("File"), self)
-        editMenu = QMenu(trans("Edit"), self)
-        helpMenu = QMenu(trans("Help"), self)
-
-        #Añadimos el menu archivo con sus acciones
-        menuBar.addMenu(fileMenu)
-        fileMenu.addAction(self.createActions.newFile)
-        fileMenu.addAction(self.createActions.openFile)
-        fileMenu.addAction(self.createActions.saveFile)
-        fileMenu.addSeparator()
-        fileMenu.addAction(self.createActions.closeApp)
-
-        #Añadimos el menu editar con sus acciones
-        menuBar.addMenu(editMenu)
-        editMenu.addAction(self.createActions.copyText)
-        editMenu.addAction(self.createActions.pasteText)
-        editMenu.addAction(self.createActions.cutText)
-        editMenu.addSeparator()
-        #editMenu.addAction(self.undo)
-        #editMenu.addAction(self.redo)
-
-        #Añadimos el menu ayuda con sus acciones
-        menuBar.addMenu(helpMenu)
-        helpMenu.addAction(self.createActions.help)
-        helpMenu.addSeparator()
-        helpMenu.addAction(self.createActions.about)
-
-        self.setMenuBar(menuBar)
-
-    #Creamos la barra de herramientas
-    def _createToolBars(self):
-        fileToolBar = QToolBar(trans('File'),self)
-        editToolBar = QToolBar(trans('Edit'),self)
-
-        self.addToolBar(fileToolBar)
-        self.addToolBar(editToolBar)
-
-        fileToolBar.addAction(self.createActions.newFile)
-        fileToolBar.addAction(self.createActions.openFile)
-        fileToolBar.addAction(self.createActions.saveFile)
-
-        fileToolBar.setMovable(False)
-
-        editToolBar.addAction(self.createActions.copyText)
-        editToolBar.addAction(self.createActions.pasteText)
-        editToolBar.addAction(self.createActions.cutText)
-        editToolBar.addSeparator()
-        self.fontSizeBox = QSpinBox()
-        self.fontSizeBox.setFocusPolicy(Qt.NoFocus)
-        editToolBar.addWidget(self.fontSizeBox)
-        editToolBar.addAction(self.createActions.bold)
-        editToolBar.addAction(self.createActions.italic)
-        editToolBar.addSeparator()
-        editToolBar.addAction(self.createActions.header1)
-        editToolBar.addAction(self.createActions.header2)
-        editToolBar.addAction(self.createActions.header3)
-        editToolBar.addSeparator()
-        #editToolBar.addWidget(self.undoButton)
-        #editToolBar.addWidget(self.redoButton)
-
-        editToolBar.setMovable(False)
+        self.menuBars = MenuBars(self)
+        self.toolBars = ToolBars(self)
 
     #Función cerrar que pregunta al usuario si está seguro antes de hacerlo
     def close(self):
