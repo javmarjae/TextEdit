@@ -23,7 +23,9 @@ from controllers.text import TextEditingTools
 from utils.bars import ToolBars, MenuBars
 from utils.widgets.actions import Actions
 
-Ui_MainWindow, QtBaseClass = uic.loadUiType(os.path.join(os.getcwd(),'..\\textEdit\\resources\\ui\\mainwindow.ui'))
+#Para documentar el código, se debe descomentar la linea superior y comentar la inferior
+#Ui_MainWindow, QtBaseClass = uic.loadUiType(os.path.join(os.getcwd(),'..\\textEdit\\resources\\ui\\mainwindow.ui'))
+Ui_MainWindow, QtBaseClass = uic.loadUiType(os.path.join(os.getcwd(),'textEdit\\resources\\ui\\mainwindow.ui'))
 
 class MainWindow(QMainWindow, Ui_MainWindow):
 
