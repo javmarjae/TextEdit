@@ -14,7 +14,7 @@ class MenuBars:
         self.createMenuBar()
 
     def createMenuBar(self):
-
+        #Creamos el menuBar y el parent
         menuBar = QMenuBar(self.app)
 
         #Añadimos los tres menus: archivo, editar y ayuda
@@ -45,6 +45,7 @@ class MenuBars:
         helpMenu.addSeparator()
         helpMenu.addAction(self.actions.about)
 
+        #Establecemos el menuBar dentro de la appp
         self.app.setMenuBar(menuBar)
 
 
@@ -58,18 +59,23 @@ class ToolBars:
 
     def createToolBars(self):      
 
+        #Creamos ambas barras de herramientas con la app como parent
         fileToolBar = QToolBar(trans('File'), self.app)
         editToolBar = QToolBar(trans('Edit'), self.app)
 
+        #Las añadimos
         self.app.addToolBar(fileToolBar)
         self.app.addToolBar(editToolBar)
 
+        #Añadimos las acciones deseadas
         fileToolBar.addAction(self.actions.newFile)
         fileToolBar.addAction(self.actions.openFile)
         fileToolBar.addAction(self.actions.saveFile)
 
+        #Establecemos que esté fija
         fileToolBar.setMovable(False)
 
+        #Añadimos las acciones deseadas y las separamos mediante separadores
         editToolBar.addAction(self.actions.copyText)
         editToolBar.addAction(self.actions.pasteText)
         editToolBar.addAction(self.actions.cutText)
@@ -84,4 +90,5 @@ class ToolBars:
         #editToolBar.addWidget(self.undoButton)
         #editToolBar.addWidget(self.redoButton)
 
+        #Establecemos que esté fija
         editToolBar.setMovable(False)

@@ -23,10 +23,7 @@ from controllers.text import TextEditingTools
 from utils.bars import ToolBars, MenuBars
 from utils.widgets.actions import Actions
 
-CURRENT_DIR = os.path.dirname(os.path.realpath(__file__))
-
-qt_creator_file = "textEdit\\resources\\ui\\mainwindow.ui"
-Ui_MainWindow, QtBaseClass = uic.loadUiType(qt_creator_file)
+Ui_MainWindow, QtBaseClass = uic.loadUiType(os.path.join(os.getcwd(),'..\\textEdit\\resources\\ui\\mainwindow.ui'))
 
 class MainWindow(QMainWindow, Ui_MainWindow):
 
@@ -48,6 +45,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.createActions = Actions(self)
         self.menuBars = MenuBars(self)
         self.toolBars = ToolBars(self)
+        #Establezco que no se pueda escribir hasta que se abra o cree un archivo
+        self.textEdit.setReadOnly(True)
 
         central_widget = QWidget()
         self.setCentralWidget(central_widget)
@@ -65,7 +64,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 if __name__ == '__main__':
     app = QApplication(sys.argv)
 
-    #Set language
+    #Establecemos el idioma
     settings = QtCore.QSettings('TextEdit','SettingsDesktop')
     language = locale.getdefaultlocale()
     settings.value('language',language)

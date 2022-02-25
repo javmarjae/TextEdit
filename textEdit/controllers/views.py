@@ -18,7 +18,6 @@ class ViewsController(Controller):
     #Función para abrir el visualizador en HTML del texto en markdown
     def openSubWindow(self):
         filename = os.path.join(os.getcwd(),'textEdit\\resources\\html\\index.html')
-        print(filename)
 
         self.page = PreviewPage()
         self.app.textPreview.setPage(self.page)
@@ -31,7 +30,6 @@ class ViewsController(Controller):
         self.app.textEdit.textChanged.connect(lambda:self.content.set_text(self.app.textEdit.toPlainText()))
 
         self.urlMd = urllib.request.pathname2url(os.path.join(os.getcwd(),'textEdit\\resources\\html\\index.html'))
-        print(self.urlMd)
         self.app.textPreview.setUrl(QUrl(self.urlMd))
         
         self.app.textPreview.load(QUrl.fromLocalFile(filename))

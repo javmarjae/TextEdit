@@ -56,6 +56,8 @@ class FileController(Controller):
         
     #Función para escribir en un archivo
     def writeFile(self,file,text):
+        #Activo la edición
+        self.app.textEdit.setReadOnly(False)
         with open(file, 'w', encoding='utf-8') as f:
             f.write(text)
             self.app.textEdit.setText(text)
