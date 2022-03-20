@@ -67,6 +67,8 @@
 <dt class="sig sig-object py" id="controllers.document.Document">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">controllers.document.</span></span><span class="sig-name descname"><span class="pre">Document</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">parent</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#controllers.document.Document" title="Enlazar permanentemente con esta definición">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">PyQt5.QtCore.QObject</span></code></p>
+<p>Here we can get the changes that are made in
+real time to send signals to our tools</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="controllers.document.Document.get_text">
 <span class="sig-name descname"><span class="pre">get_text</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#controllers.document.Document.get_text" title="Enlazar permanentemente con esta definición">¶</a></dt>
@@ -99,22 +101,35 @@
 <dl class="py method">
 <dt class="sig sig-object py" id="controllers.file.FileController.fileNew">
 <span class="sig-name descname"><span class="pre">fileNew</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#controllers.file.FileController.fileNew" title="Enlazar permanentemente con esta definición">¶</a></dt>
-<dd></dd></dl>
+<dd><p>This function allows the user to create a new file
+stablishing where does the user want to save it</p>
+</dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="controllers.file.FileController.fileOpen">
 <span class="sig-name descname"><span class="pre">fileOpen</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#controllers.file.FileController.fileOpen" title="Enlazar permanentemente con esta definición">¶</a></dt>
-<dd></dd></dl>
+<dd><p>This function allows the user to open a file</p>
+</dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="controllers.file.FileController.fileSaveChanges">
 <span class="sig-name descname"><span class="pre">fileSaveChanges</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#controllers.file.FileController.fileSaveChanges" title="Enlazar permanentemente con esta definición">¶</a></dt>
-<dd></dd></dl>
+<dd><p>This function allows the user to save the changes
+in the opened file</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="controllers.file.FileController.saveAs">
+<span class="sig-name descname"><span class="pre">saveAs</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#controllers.file.FileController.saveAs" title="Enlazar permanentemente con esta definición">¶</a></dt>
+<dd><p>This function allows the user to save a file
+using a different name or path</p>
+</dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="controllers.file.FileController.writeFile">
 <span class="sig-name descname"><span class="pre">writeFile</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">text</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#controllers.file.FileController.writeFile" title="Enlazar permanentemente con esta definición">¶</a></dt>
-<dd></dd></dl>
+<dd><p>This function allows the user to edit a file</p>
+</dd></dl>
 
 </dd></dl>
 
@@ -125,6 +140,10 @@
 <dt class="sig sig-object py" id="controllers.text.TextEditingTools">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">controllers.text.</span></span><span class="sig-name descname"><span class="pre">TextEditingTools</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">app</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#controllers.text.TextEditingTools" title="Enlazar permanentemente con esta definición">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#controllers.base.Controller" title="controllers.base.Controller"><code class="xref py py-class docutils literal notranslate"><span class="pre">controllers.base.Controller</span></code></a></p>
+<p>Creating the basic functions that allows
+the user to do the basic things with the
+text using the buttons located at the menu
+or the tool bars</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="controllers.text.TextEditingTools.textBold">
 <span class="sig-name descname"><span class="pre">textBold</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#controllers.text.TextEditingTools.textBold" title="Enlazar permanentemente con esta definición">¶</a></dt>
@@ -183,7 +202,17 @@
 <dl class="py method">
 <dt class="sig sig-object py" id="controllers.views.ViewsController.openSubWindow">
 <span class="sig-name descname"><span class="pre">openSubWindow</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#controllers.views.ViewsController.openSubWindow" title="Enlazar permanentemente con esta definición">¶</a></dt>
-<dd></dd></dl>
+<dd><p>This function shows the markdown text provided by
+the user in a parallel window transformed to
+HTML in real time</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="controllers.views.ViewsController.toggleStyleSheet">
+<span class="sig-name descname"><span class="pre">toggleStyleSheet</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#controllers.views.ViewsController.toggleStyleSheet" title="Enlazar permanentemente con esta definición">¶</a></dt>
+<dd><p>This function toggles the app theme
+between dark and light</p>
+</dd></dl>
 
 </dd></dl>
 
