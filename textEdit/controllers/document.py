@@ -1,6 +1,11 @@
 from PyQt5.QtCore import QObject, pyqtProperty, pyqtSignal
 
 class Document(QObject):
+    """
+    Here we can get the changes that are made in
+    real time to send signals to our tools
+
+    """
     def __init__(self, parent=None):
         super().__init__(parent)
         self.m_text = ''

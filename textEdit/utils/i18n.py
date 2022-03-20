@@ -6,7 +6,10 @@ from PyQt5.QtCore import QSettings
 CACHED_TRANS = None
 CONFIG_FOLDER = normpath(expanduser('textEdit/resources/config/'))
 
-#Obtenemos las traducciones
+"""
+    Get translations
+
+"""
 def get_trans_dict(lang: str) -> dict:
     global CACHED_TRANS
     if CACHED_TRANS is None:
@@ -18,7 +21,10 @@ def get_trans_dict(lang: str) -> dict:
 
     return CACHED_TRANS
 
-#Establecemos la traducción deseada
+"""
+    Stablish the wanted translation
+
+"""
 def trans(key: str) -> str:
     settings = QSettings("TextEdit", "SettingsDesktop")
     language = 'es'  

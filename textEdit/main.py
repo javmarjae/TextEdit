@@ -24,7 +24,6 @@ Ui_MainWindow, QtBaseClass = uic.loadUiType(os.path.join(os.getcwd(),'textEdit\\
 
 class MainWindow(QMainWindow, Ui_MainWindow):
 
-    #Inicializamos
     def __init__(self):
         super(QMainWindow,self).__init__(parent=None)
         self.ui = Ui_MainWindow()
@@ -42,7 +41,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.createActions = Actions(self)
         self.menuBars = MenuBars(self)
         self.toolBars = ToolBars(self)
-        #Establezco que no se pueda escribir hasta que se abra o cree un archivo
+        
         self.textEdit.setReadOnly(True)
 
         central_widget = QWidget()
@@ -51,7 +50,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         lay.addWidget(self.textEdit,5)
         lay.addWidget(self.textPreview,5)
 
-    #Función cerrar que pregunta al usuario si está seguro antes de hacerlo
     def close(self):
         choice = QMessageBox.question(self, trans('Exit'), trans('Are you sure you want to exit TextEdit?'), QMessageBox.Yes | QMessageBox.No)
         if choice == QMessageBox.Si:
@@ -61,7 +59,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 if __name__ == '__main__':
     app = QApplication(sys.argv)
 
-    #Establecemos el idioma
+    """
+    Stablish the app language depending
+    on the system's language
+
+    """
     settings = QtCore.QSettings('TextEdit','SettingsDesktop')
     language = locale.getdefaultlocale()
     settings.value('language',language)
@@ -71,6 +73,8 @@ if __name__ == '__main__':
     app.installTranslator(translator)
 
     GUI = MainWindow()
-    GUI.show()
+    total_size = GUI.screen().availableGeometry()
+    GUI.resize(total_size.width()*2/3, total_size.height()*2/3)
+    GUI.showMaximized()
     app.exec()
 

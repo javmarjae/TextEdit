@@ -18,13 +18,24 @@ class ViewsController(Controller):
         super().__init__(app)
 
     def toggleStyleSheet():
+        """
+        This function toggles the app theme
+        between dark and light
+
+        """
         if(qApp.styleSheet() != open("textEdit/resources/themes/light.qss","r").read()):
             qApp.setStyleSheet(open("textEdit/resources/themes/light.qss","r").read())
         else:
             qApp.setStyleSheet(open("textEdit/resources/themes/dark.qss","r").read())
     
-    #Función para abrir el visualizador en HTML del texto en markdown
     def openSubWindow(self):
+        """
+        This function shows the markdown text provided by
+        the user in a parallel window transformed to
+        HTML in real time
+
+        """
+
         filename = os.path.join(os.getcwd(),'textEdit\\resources\\html\\index.html')
 
         self.page = PreviewPage()

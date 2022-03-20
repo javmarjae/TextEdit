@@ -10,77 +10,81 @@ class FileController(Controller):
         super().__init__(app)
         self.filePath = ''
 
-    #Función abrir documento de texto
-    def fileOpen(self):
-        #Establecemos el archivo que queremos abrir 
+    def fileOpen(self): 
+        """
+        This function allows the user to open a file
+
+        """
         file,_ = QFileDialog.getOpenFileName(self.app, trans('Open file'))
 
-        #Añadimos este condicional por si el usuario cancela
         if not file:
             return
 
-        #Guardamos la ruta
         self.filePath = file
 
         name = os.path.basename(self.filePath)
         self.app.setWindowTitle('%s | TextEdit' %name)
 
-        #Establecemos la lectura en HTML en paralelo
         self.app.views.openSubWindow()  
 
-        #Abrimos el archivo y lo mandamos a la funcion para escribir
         with open(file, 'r', encoding='utf-8') as f:
             text = f.read()
         self.writeFile(file, text)
         
-    #Función nuevo archivo
     def fileNew(self):
-        #Establecemos el lugar en el que vamos a guardar el archivo
+        """
+        This function allows the user to create a new file
+        stablishing where does the user want to save it
+
+        """
         file,_ = QFileDialog.getSaveFileName(self.app, trans('New file'))
 
-        #Añadimos este condicional por si el usuario cancela
         if not file:
             return
 
-        #Guardamos la ruta
         self.filePath = file
 
         name = os.path.basename(self.filePath)
         self.app.setWindowTitle('%s | TextEdit' %name)
 
-        #Establecemos la lectura en HTML en paralelo
         self.app.views.openSubWindow()      
 
-        #Abrimos el archivo en la función para escribir
         self.writeFile(file, text = '')
         
-    #Función para escribir en un archivo
     def writeFile(self,file,text):
-        #Activo la edición
+        """
+        This function allows the user to edit a file
+
+        """
         self.app.textEdit.setReadOnly(False)
         with open(file, 'w', encoding='utf-8') as f:
             f.write(text)
             self.app.textEdit.setText(text)
             
-    #Función para guardar los cambios
     def fileSaveChanges(self):  
+        """
+        This function allows the user to save the changes
+        in the opened file
 
+        """
         if not self.filePath:
             return
 
-        #Definimos la función de guardado de un archivo
         with open(self.filePath, 'w', encoding='utf-8') as f:
             text = self.app.textEdit.toPlainText()
             f.write(text)
     
     def saveAs(self):
+        """
+        This function allows the user to save a file
+        using a different name or path
+
+        """
         file,_ = QFileDialog.getSaveFileName(self.app, trans('New file'))
 
-        #Añadimos este condicional por si el usuario cancela
         if not file:
             return
 
-        #Definimos la función de guardado de un archivo
         with open(file, 'w', encoding='utf-8') as f:
             text = self.app.textEdit.toPlainText()
             f.write(text)
