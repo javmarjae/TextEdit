@@ -72,3 +72,15 @@ class FileController(Controller):
         with open(self.filePath, 'w', encoding='utf-8') as f:
             text = self.app.textEdit.toPlainText()
             f.write(text)
+    
+    def saveAs(self):
+        file,_ = QFileDialog.getSaveFileName(self.app, trans('New file'))
+
+        #Añadimos este condicional por si el usuario cancela
+        if not file:
+            return
+
+        #Definimos la función de guardado de un archivo
+        with open(file, 'w', encoding='utf-8') as f:
+            text = self.app.textEdit.toPlainText()
+            f.write(text)

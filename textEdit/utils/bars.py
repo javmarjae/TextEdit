@@ -1,3 +1,4 @@
+from stat import filemode
 from PyQt5.QtWidgets import QMenuBar, QMenu, QToolBar, QSpinBox
 from PyQt5.QtCore import Qt
 
@@ -27,6 +28,7 @@ class MenuBars:
         fileMenu.addAction(self.actions.newFile)
         fileMenu.addAction(self.actions.openFile)
         fileMenu.addAction(self.actions.saveFile)
+        fileMenu.addAction(self.actions.saveAs)
         fileMenu.addSeparator()
         fileMenu.addAction(self.actions.closeApp)
 
@@ -36,9 +38,11 @@ class MenuBars:
         editMenu.addAction(self.actions.pasteText)
         editMenu.addAction(self.actions.cutText)
         editMenu.addSeparator()
-        #editMenu.addAction(self.undo)
-        #editMenu.addAction(self.redo)
-
+        editMenu.addAction(self.actions.undo)
+        editMenu.addAction(self.actions.redo)
+        editMenu.addSeparator()
+        editMenu.addAction(self.actions.toggleTheme)
+        
         #Añadimos el menu ayuda con sus acciones
         menuBar.addMenu(helpMenu)
         helpMenu.addAction(self.actions.help)
@@ -71,6 +75,7 @@ class ToolBars:
         fileToolBar.addAction(self.actions.newFile)
         fileToolBar.addAction(self.actions.openFile)
         fileToolBar.addAction(self.actions.saveFile)
+        fileToolBar.addAction(self.actions.saveAs)
 
         #Establecemos que esté fija
         fileToolBar.setMovable(False)
@@ -87,8 +92,10 @@ class ToolBars:
         editToolBar.addAction(self.actions.header2)
         editToolBar.addAction(self.actions.header3)
         editToolBar.addSeparator()
-        #editToolBar.addWidget(self.undoButton)
-        #editToolBar.addWidget(self.redoButton)
+        editToolBar.addAction(self.actions.undo)
+        editToolBar.addAction(self.actions.redo)
+        editToolBar.addSeparator()
+        editToolBar.addAction(self.actions.toggleTheme)
 
         #Establecemos que esté fija
         editToolBar.setMovable(False)

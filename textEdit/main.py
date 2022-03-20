@@ -4,17 +4,12 @@ import sys
 
 import os
 import locale
-from tkinter import Menu
-import urllib.request
-from xml.dom.minidom import Document
 
 from PyQt5 import QtCore, QtGui, uic
-from PyQt5.QtGui import QIcon, QTextCursor 
+from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import *
 from PyQt5.QtWebEngineWidgets import QWebEngineView, QWebEnginePage
-from PyQt5.QtCore import Qt, pyqtProperty, pyqtSignal, QObject, QTextCodec, QUrl
-from markdown import markdown
-from PyQt5.QtWebChannel import QWebChannel
+from PyQt5.QtCore import Qt, pyqtProperty, QFile, QTextStream
 from utils.i18n import trans
 from utils.commands import *
 from controllers.views import ViewsController

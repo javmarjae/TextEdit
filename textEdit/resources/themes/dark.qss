@@ -1,0 +1,22 @@
+QMainWindow {
+    background-color: #283238;
+}
+QTextEdit{
+    color: rgba(255,255,255,0.7);
+    background-color: #1F272C;
+}
+QToolButton:hover{
+    background-color: rgba(255,255,255,0.2);
+    border-top: 1px solid #1F272C;
+    border-bottom: 2px solid rgba(255,255,255,0.6);
+}
+QMenuBar{
+    color: rgba(255,255,255,0.7);
+    background-color: #1F272C;
+}
+QMenuBar::item:hover{
+    background-color: rgba(255,255,255,0.2);
+    color: rgba(255,255,255,0.7);
+    border-top: 1px solid #1F272C;
+    border-bottom: 2px solid rgba(255,255,255,0.6);
+}

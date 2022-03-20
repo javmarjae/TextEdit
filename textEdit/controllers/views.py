@@ -1,11 +1,13 @@
 import os
 import urllib.request
+import sys
 
 from .base import Controller
 from .document import Document
 from PyQt5.QtWebEngineWidgets import QWebEnginePage
 from PyQt5.QtWebChannel import QWebChannel
 from PyQt5.QtCore import QUrl
+from PyQt5.QtWidgets import *
 
 class PreviewPage(QWebEnginePage):
     pass
@@ -14,6 +16,12 @@ class ViewsController(Controller):
 
     def __init__(self, app):
         super().__init__(app)
+
+    def toggleStyleSheet():
+        if(qApp.styleSheet() != open("textEdit/resources/themes/light.qss","r").read()):
+            qApp.setStyleSheet(open("textEdit/resources/themes/light.qss","r").read())
+        else:
+            qApp.setStyleSheet(open("textEdit/resources/themes/dark.qss","r").read())
     
     #Función para abrir el visualizador en HTML del texto en markdown
     def openSubWindow(self):

@@ -2,6 +2,8 @@ from typing import Text
 from PyQt5.QtWidgets import *
 from PyQt5.QtGui import QIcon
 
+from controllers.views import ViewsController
+
 from ..i18n import trans
 from controllers.file import FileController
 from controllers.text import TextEditingTools
@@ -10,6 +12,7 @@ class Actions:
 
     def __init__(self, app):
         self.app = app
+        self.views = ViewsController
         self.tools = TextEditingTools(self.app)
         self.fileController = FileController(self.app)
 
@@ -36,6 +39,13 @@ class Actions:
         self.saveFile.setShortcut('Ctrl+s')
         self.saveFile.triggered.connect(self.fileController.fileSaveChanges)
         self.saveFile.setStatusTip(trans('Save changes'))
+
+        self.saveAs = QAction()
+        self.saveAs.setIcon(QIcon("textEdit/resources/icons/saveAs.png"))
+        self.saveAs.setText(trans('Save as...'))
+        self.saveAs.setShortcut('Ctrl+g')
+        self.saveAs.triggered.connect(self.fileController.saveAs)
+        self.saveAs.setStatusTip(trans('Save as...'))
 
         #Creamos la acción para cerrar la app
         self.closeApp = QAction()
@@ -67,6 +77,24 @@ class Actions:
         self.cutText.setShortcut('Ctrl+x')
         self.cutText.triggered.connect(self.tools.textCut)
         self.cutText.setStatusTip(trans('Cut selected text'))
+
+        self.undo = QAction()
+        self.undo.setText(trans('Undo'))
+        self.undo.setToolTip(trans('Undo'))
+        self.undo.triggered.connect(self.app.textEdit.undo)
+        self.undo.setEnabled(False)
+        self.undo.setIcon(QIcon('textEdit/resources/icons/undo.png'))
+
+        self.redo = QAction()
+        self.redo.setText(trans('Redo'))
+        self.redo.setToolTip(trans('Redo'))
+        self.redo.triggered.connect(self.app.textEdit.redo)
+        self.redo.setEnabled(False)
+        self.redo.setIcon(QIcon('textEdit/resources/icons/redo.png'))
+
+        doc = self.app.textEdit.document()
+        self.undo.setEnabled(doc.isModified())
+        self.redo.setEnabled(doc.isModified())
 
         '''
 
@@ -151,3 +179,12 @@ class Actions:
         self.about = QAction()
         self.about.setText(trans('About...'))
         self.about.setStatusTip(trans('About TextEdit'))
+
+        #Creamos la acción para cambiar el tema
+        self.toggleTheme = QAction()
+        self.toggleTheme.setIcon(QIcon("textEdit/resources/icons/light.png"))
+        self.toggleTheme.setText(trans('Toggle theme'))
+        self.toggleTheme.triggered.connect(self.views.toggleStyleSheet)
+        self.toggleTheme.setStatusTip(trans('Toggle theme'))
+        #Llamamos a la funcion para establecer el tema inicial
+        self.views.toggleStyleSheet()
