@@ -28,6 +28,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         super(QMainWindow,self).__init__(parent=None)
         self.ui = Ui_MainWindow()
         self.setupUi(self)
+        self.setWindowIcon(QIcon("textEdit/resources/icons/icon.png"))
         self.views = ViewsController(self)
         self.textPreview = QWebEngineView()
         self.textPreview.setContextMenuPolicy(Qt.NoContextMenu)
@@ -41,6 +42,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.createActions = Actions(self)
         self.menuBars = MenuBars(self)
         self.toolBars = ToolBars(self)
+        self.textEdit.setText("Abra o cree un nuevo archivo para empezar a redactar.")
         
         self.textEdit.setReadOnly(True)
 
