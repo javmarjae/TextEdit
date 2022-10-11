@@ -1,2 +1,2 @@
 # TextEdit
-Editor de texto de prueba 
+Editor de texto en Markdown con vista HTML 
